@@ -25,7 +25,7 @@ function App() {
         <Route path="/admin/signup" element={<AdminSignupPage />} />
         
         <Route 
-          path="/client" 
+          path="/onboarding" 
           element={
             <ProtectedRoute allowedRoles={['client']}>
               <ClientOnboardingPage />
@@ -34,7 +34,7 @@ function App() {
         />
         
         <Route 
-          path="/vendor" 
+          path="/dashboard/vendor" 
           element={
             <ProtectedRoute allowedRoles={['vendor']}>
               <VendorDashboardPage />
@@ -43,16 +43,16 @@ function App() {
         />
         
         <Route 
-          path="/buyer" 
+          path="/marketplace" 
           element={
-            <ProtectedRoute allowedRoles={['buyer']}>
+            <ProtectedRoute allowedRoles={['shopper', 'buyer']}>
               <ShopperMarketplacePage />
             </ProtectedRoute>
           } 
         />
         
         <Route 
-          path="/agent" 
+          path="/dashboard/agent" 
           element={
             <ProtectedRoute allowedRoles={['agent']}>
               <AgentDashboardPage />
