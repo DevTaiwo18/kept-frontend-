@@ -7,7 +7,6 @@ function Footer() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-10 items-start">
           
-          {/* Logo & Tagline */}
           <div className="text-center md:text-left">
             <img 
               src={logo} 
@@ -22,7 +21,6 @@ function Footer() {
             </p>
           </div>
 
-          {/* Contact Info */}
           <div className="text-center md:text-left">
             <h4 
               className="text-xl font-bold mb-4 text-[#e6c35a]" 
@@ -34,25 +32,24 @@ function Footer() {
               <p className="flex items-center justify-center md:justify-start gap-2">
                 <span className="text-[#e6c35a]">📧</span>
                 <a 
-                  href="mailto:greg@keptestate.com" 
+                  href="mailto:admin@keptestate.com" 
                   className="hover:text-[#edd88c] transition-colors"
                 >
-                  greg@keptestate.com
+                  admin@keptestate.com
                 </a>
               </p>
               <p className="flex items-center justify-center md:justify-start gap-2">
                 <span className="text-[#e6c35a]">📞</span>
                 <a 
-                  href="tel:+18189128910" 
+                  href="tel:+15136094731" 
                   className="hover:text-[#edd88c] transition-colors"
                 >
-                  +1 (818) 912-8910
+                  +1 (513) 609-4731
                 </a>
               </p>
             </div>
           </div>
 
-          {/* Navigation Links */}
           <div className="text-center md:text-left">
             <h4 
               className="text-xl font-bold mb-4 text-[#e6c35a]" 
@@ -85,7 +82,6 @@ function Footer() {
           </div>
         </div>
 
-        {/* Bottom Bar */}
         <div className="border-t border-[#707072]/30 mt-10 pt-6 text-center">
           <p className="text-sm text-[#707072]" style={{ fontFamily: 'Inter, sans-serif' }}>
             © 2025 Kept House Estate Sales. All rights reserved.

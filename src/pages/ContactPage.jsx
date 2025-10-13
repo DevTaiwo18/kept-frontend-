@@ -177,11 +177,11 @@ function ContactPage() {
                     Email
                   </p>
                   <a 
-                    href="mailto:greg@keptestate.com" 
+                    href="mailto:admin@keptestate.com" 
                     className="text-lg font-semibold text-[#101010] hover:text-[#e6c35a] transition-colors"
                     style={{ fontFamily: 'Inter, sans-serif' }}
                   >
-                    greg@keptestate.com
+                    admin@keptestate.com
                   </a>
                 </div>
               </div>
@@ -193,11 +193,11 @@ function ContactPage() {
                     Phone
                   </p>
                   <a 
-                    href="tel:+18189128910" 
+                    href="tel:+15136094731" 
                     className="text-lg font-semibold text-[#101010] hover:text-[#e6c35a] transition-colors"
                     style={{ fontFamily: 'Inter, sans-serif' }}
                   >
-                    +1 (818) 912-8910
+                    +1 (513) 609-4731
                   </a>
                 </div>
               </div>

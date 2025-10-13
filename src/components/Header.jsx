@@ -46,11 +46,11 @@ function Header() {
               Contact
             </Link>
             <a 
-              href="tel:+18189128910"
+              href="tel:+15136094731"
               className="px-4 py-2 text-[#e6c35a] hover:text-[#edd88c] transition-colors text-sm font-medium flex items-center gap-1"
               style={{ fontFamily: 'Inter, sans-serif' }}
             >
-              📞 (818) 912-8910
+              📞 (513) 609-4731
             </a>
           </nav>
 
@@ -88,7 +88,7 @@ function Header() {
           <Link to="/" className="text-xs hover:text-[#e6c35a]" style={{ fontFamily: 'Inter, sans-serif' }}>Home</Link>
           <Link to="/about" className="text-xs hover:text-[#e6c35a]" style={{ fontFamily: 'Inter, sans-serif' }}>About</Link>
           <Link to="/contact" className="text-xs hover:text-[#e6c35a]" style={{ fontFamily: 'Inter, sans-serif' }}>Contact</Link>
-          <a href="tel:+18189128910" className="text-xs text-[#e6c35a]" style={{ fontFamily: 'Inter, sans-serif' }}>📞 Call</a>
+          <a href="tel:+15136094731" className="text-xs text-[#e6c35a]" style={{ fontFamily: 'Inter, sans-serif' }}>📞 Call</a>
         </div>
       </div>
     </header>
