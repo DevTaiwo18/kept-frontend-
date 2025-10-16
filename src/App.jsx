@@ -12,9 +12,12 @@ import AdminLoginPage from './pages/AdminLoginPage'
 import AdminSignupPage from './pages/AdminSignupPage'
 import NotFoundPage from './pages/NotFoundPage'
 import ClientOnboardingPage from './pages/ClientOnboardingPage'
+import ClientNewProjectPage from './pages/ClientNewProjectPage'
 import VendorDashboardPage from './pages/VendorDashboardPage'
 import ShopperMarketplacePage from './pages/ShopperMarketplacePage'
 import AgentDashboardPage from './pages/AgentDashboardPage'
+import ClientProjectDetailPage from './pages/ClientProjectDetailPage'
+import AgentJobDetailPage from './pages/AgentJobDetailPage'
 
 function App() {
   return (
@@ -23,43 +26,71 @@ function App() {
       <Routes>
         <Route path="/admin" element={<AdminLoginPage />} />
         <Route path="/admin/signup" element={<AdminSignupPage />} />
-        
-        <Route 
-          path="/onboarding" 
+
+        <Route
+          path="/onboarding"
           element={
             <ProtectedRoute allowedRoles={['client']}>
               <ClientOnboardingPage />
             </ProtectedRoute>
-          } 
+          }
         />
-        
-        <Route 
-          path="/dashboard/vendor" 
+
+        <Route
+          path="/client/new-project"
+          element={
+            <ProtectedRoute allowedRoles={['client']}>
+              <ClientNewProjectPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/client/project/:id"
+          element={
+            <ProtectedRoute allowedRoles={['client']}>
+              <ClientProjectDetailPage />
+            </ProtectedRoute>
+          }
+        />
+
+
+        <Route
+          path="/dashboard/vendor"
           element={
             <ProtectedRoute allowedRoles={['vendor']}>
               <VendorDashboardPage />
             </ProtectedRoute>
-          } 
+          }
         />
-        
-        <Route 
-          path="/marketplace" 
+
+        <Route
+          path="/marketplace"
           element={
             <ProtectedRoute allowedRoles={['shopper', 'buyer']}>
               <ShopperMarketplacePage />
             </ProtectedRoute>
-          } 
+          }
         />
-        
-        <Route 
-          path="/dashboard/agent" 
+
+        <Route
+          path="/dashboard/agent"
           element={
             <ProtectedRoute allowedRoles={['agent']}>
               <AgentDashboardPage />
             </ProtectedRoute>
-          } 
+          }
         />
-        
+
+        <Route
+          path="/agent/job/:id"
+          element={
+            <ProtectedRoute allowedRoles={['agent']}>
+              <AgentJobDetailPage />
+            </ProtectedRoute>
+          }
+        />
+
         <Route path="/" element={
           <div className="min-h-screen bg-[#F8F5F0] flex flex-col">
             <Header />
