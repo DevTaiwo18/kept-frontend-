@@ -18,6 +18,8 @@ import ShopperMarketplacePage from './pages/ShopperMarketplacePage'
 import AgentDashboardPage from './pages/AgentDashboardPage'
 import ClientProjectDetailPage from './pages/ClientProjectDetailPage'
 import AgentJobDetailPage from './pages/AgentJobDetailPage'
+import ClientItemGalleryPage from './pages/ClientItemGalleryPage'
+import AgentItemGalleryPage from './pages/AgentItemGalleryPage'
 
 function App() {
   return (
@@ -54,6 +56,14 @@ function App() {
           }
         />
 
+        <Route
+          path="/client/item/:id"
+          element={
+            <ProtectedRoute allowedRoles={['client']}>
+              <ClientItemGalleryPage />
+            </ProtectedRoute>
+          }
+        />
 
         <Route
           path="/dashboard/vendor"
@@ -87,6 +97,15 @@ function App() {
           element={
             <ProtectedRoute allowedRoles={['agent']}>
               <AgentJobDetailPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/agent/item/:id"
+          element={
+            <ProtectedRoute allowedRoles={['agent']}>
+              <AgentItemGalleryPage />
             </ProtectedRoute>
           }
         />
