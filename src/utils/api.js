@@ -42,3 +42,17 @@ export const login = async (credentials) => {
 export const getCurrentUser = async () => {
   return apiCall('/auth/me')
 }
+
+export const forgotPassword = async (data) => {
+  return apiCall('/auth/forgot-password', {
+    method: 'POST',
+    body: JSON.stringify(data)
+  })
+}
+
+export const resetPassword = async (data) => {
+  return apiCall('/auth/reset-password', {
+    method: 'POST',
+    body: JSON.stringify(data)
+  })
+}

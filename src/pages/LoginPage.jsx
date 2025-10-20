@@ -100,13 +100,13 @@ function LoginPage() {
             </div>
 
             <div className="text-right">
-              <a 
-                href="#" 
+              <Link 
+                to="/forgot-password" 
                 className="text-sm text-[#1c449e] hover:text-[#e6c35a] transition-colors"
                 style={{ fontFamily: 'Inter, sans-serif' }}
               >
                 Forgot password?
-              </a>
+              </Link>
             </div>
             
             <button 

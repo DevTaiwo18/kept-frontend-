@@ -1,11 +1,11 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { login } from '../utils/api'
-import { saveAuth } from '../utils/auth'
+import { resetPassword } from '../utils/api'
 
-function AdminLoginPage() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
+function AdminResetPasswordPage() {
+  const [token, setToken] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const navigate = useNavigate()
@@ -13,21 +13,24 @@ function AdminLoginPage() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
+
+    if (newPassword !== confirmPassword) {
+      setError('Passwords do not match')
+      return
+    }
+
+    if (newPassword.length < 6) {
+      setError('Password must be at least 6 characters')
+      return
+    }
+
     setIsLoading(true)
 
     try {
-      const data = await login({ email, password })
-      
-      if (data.user.role !== 'agent') {
-        setError('Access denied. Admin credentials required.')
-        setIsLoading(false)
-        return
-      }
-
-      saveAuth(data.token, data.user)
-      navigate('/dashboard/agent')
+      await resetPassword({ token, newPassword })
+      navigate('/admin')
     } catch (err) {
-      setError(err.message || 'Login failed. Please try again.')
+      setError(err.message || 'Failed to reset password. Please try again.')
     } finally {
       setIsLoading(false)
     }
@@ -42,18 +45,18 @@ function AdminLoginPage() {
             className="text-4xl font-bold text-[#101010] mb-3" 
             style={{ fontFamily: 'Playfair Display, serif' }}
           >
-            Admin Login
+            Reset Admin Password
           </h1>
           <p 
             className="text-sm text-[#707072]" 
             style={{ fontFamily: 'Inter, sans-serif' }}
           >
-            Access the Kept House admin dashboard
+            Enter the code from your email
           </p>
         </div>
 
         <div className="bg-white rounded-lg shadow-lg p-8">
-
+          
           {error && (
             <div className="mb-5 p-4 bg-red-50 border border-red-200 rounded-lg">
               <p className="text-sm text-red-600" style={{ fontFamily: 'Inter, sans-serif' }}>
@@ -69,47 +72,65 @@ function AdminLoginPage() {
                 className="block text-sm font-semibold text-[#101010] mb-2" 
                 style={{ fontFamily: 'Inter, sans-serif' }}
               >
-                Email
+                Reset Code
               </label>
               <input 
-                type="email"
+                type="text"
                 required
                 disabled={isLoading}
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                value={token}
+                onChange={(e) => {
+                  setToken(e.target.value)
+                  setError('')
+                }}
                 className="w-full px-4 py-3 border border-[#707072]/30 rounded-lg focus:outline-none focus:border-[#e6c35a] focus:ring-2 focus:ring-[#e6c35a]/20 transition-all disabled:bg-gray-50"
                 style={{ fontFamily: 'Inter, sans-serif' }}
-                placeholder="admin@keptestate.com"
+                placeholder="Enter code from email"
               />
             </div>
-            
+
             <div>
               <label 
                 className="block text-sm font-semibold text-[#101010] mb-2" 
                 style={{ fontFamily: 'Inter, sans-serif' }}
               >
-                Password
+                New Password
               </label>
               <input 
                 type="password"
                 required
                 disabled={isLoading}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                value={newPassword}
+                onChange={(e) => {
+                  setNewPassword(e.target.value)
+                  setError('')
+                }}
                 className="w-full px-4 py-3 border border-[#707072]/30 rounded-lg focus:outline-none focus:border-[#e6c35a] focus:ring-2 focus:ring-[#e6c35a]/20 transition-all disabled:bg-gray-50"
                 style={{ fontFamily: 'Inter, sans-serif' }}
-                placeholder="Enter your password"
+                placeholder="Enter new password"
               />
             </div>
 
-            <div className="text-right">
-              <Link 
-                to="/admin/forgot-password" 
-                className="text-sm text-[#1c449e] hover:text-[#e6c35a] transition-colors"
+            <div>
+              <label 
+                className="block text-sm font-semibold text-[#101010] mb-2" 
                 style={{ fontFamily: 'Inter, sans-serif' }}
               >
-                Forgot password?
-              </Link>
+                Confirm Password
+              </label>
+              <input 
+                type="password"
+                required
+                disabled={isLoading}
+                value={confirmPassword}
+                onChange={(e) => {
+                  setConfirmPassword(e.target.value)
+                  setError('')
+                }}
+                className="w-full px-4 py-3 border border-[#707072]/30 rounded-lg focus:outline-none focus:border-[#e6c35a] focus:ring-2 focus:ring-[#e6c35a]/20 transition-all disabled:bg-gray-50"
+                style={{ fontFamily: 'Inter, sans-serif' }}
+                placeholder="Confirm new password"
+              />
             </div>
             
             <button 
@@ -118,7 +139,7 @@ function AdminLoginPage() {
               className="w-full bg-[#e6c35a] text-black px-6 py-3 rounded-lg font-bold hover:bg-[#edd88c] transition-all shadow-md text-lg disabled:bg-gray-300 disabled:cursor-not-allowed"
               style={{ fontFamily: 'Inter, sans-serif' }}
             >
-              {isLoading ? 'Logging in...' : 'Log In as Admin'}
+              {isLoading ? 'Resetting...' : 'Reset Password'}
             </button>
           </form>
 
@@ -127,12 +148,12 @@ function AdminLoginPage() {
               className="text-sm text-[#707072]" 
               style={{ fontFamily: 'Inter, sans-serif' }}
             >
-              Need an admin account?{' '}
+              Remember your password?{' '}
               <Link 
-                to="/admin/signup" 
+                to="/admin" 
                 className="text-[#1c449e] hover:text-[#e6c35a] font-semibold transition-colors"
               >
-                Sign Up
+                Back to Admin Login
               </Link>
             </p>
           </div>
@@ -143,4 +164,4 @@ function AdminLoginPage() {
   )
 }
 
-export default AdminLoginPage
+export default AdminResetPasswordPage

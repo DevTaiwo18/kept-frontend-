@@ -64,13 +64,12 @@ function AgentDashboardPage() {
   }
 
   const filteredJobs = jobs.filter(job => {
-    // Filter by stage
     const stageMatch = filter === 'all' || job.stage === filter
     
-    // Filter by search query (name only)
     const searchLower = searchQuery.toLowerCase()
     const searchMatch = !searchQuery || 
-      job.contractSignor?.toLowerCase().includes(searchLower)
+      job.contractSignor?.toLowerCase().includes(searchLower) ||
+      job.propertyAddress?.toLowerCase().includes(searchLower)
     
     return stageMatch && searchMatch
   })
@@ -151,7 +150,7 @@ function AgentDashboardPage() {
           <div className="relative">
             <input
               type="text"
-              placeholder="Search client name..."
+              placeholder="Search client name or property address..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full px-4 py-3 pl-10 border border-[#707072]/30 rounded-lg focus:outline-none focus:border-[#e6c35a] focus:ring-2 focus:ring-[#e6c35a]/20"

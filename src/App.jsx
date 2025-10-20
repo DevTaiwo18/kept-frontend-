@@ -10,6 +10,10 @@ import LoginPage from './pages/LoginPage'
 import SignupPage from './pages/SignupPage'
 import AdminLoginPage from './pages/AdminLoginPage'
 import AdminSignupPage from './pages/AdminSignupPage'
+import AdminForgotPasswordPage from './pages/AdminForgotPasswordPage'
+import AdminResetPasswordPage from './pages/AdminResetPasswordPage'
+import ForgotPasswordPage from './pages/ForgotPasswordPage'
+import ResetPasswordPage from './pages/ResetPasswordPage'
 import NotFoundPage from './pages/NotFoundPage'
 import ClientOnboardingPage from './pages/ClientOnboardingPage'
 import ClientNewProjectPage from './pages/ClientNewProjectPage'
@@ -28,6 +32,8 @@ function App() {
       <Routes>
         <Route path="/admin" element={<AdminLoginPage />} />
         <Route path="/admin/signup" element={<AdminSignupPage />} />
+        <Route path="/admin/forgot-password" element={<AdminForgotPasswordPage />} />
+        <Route path="/admin/reset-password" element={<AdminResetPasswordPage />} />
 
         <Route
           path="/onboarding"
@@ -155,6 +161,26 @@ function App() {
             <Header />
             <main className="flex-grow">
               <SignupPage />
+            </main>
+            <Footer />
+          </div>
+        } />
+
+        <Route path="/forgot-password" element={
+          <div className="min-h-screen bg-[#F8F5F0] flex flex-col">
+            <Header />
+            <main className="flex-grow">
+              <ForgotPasswordPage />
+            </main>
+            <Footer />
+          </div>
+        } />
+
+        <Route path="/reset-password" element={
+          <div className="min-h-screen bg-[#F8F5F0] flex flex-col">
+            <Header />
+            <main className="flex-grow">
+              <ResetPasswordPage />
             </main>
             <Footer />
           </div>
