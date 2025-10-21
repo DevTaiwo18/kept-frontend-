@@ -14,8 +14,7 @@ function LoginPage() {
     const routes = {
       client: '/onboarding',
       vendor: '/dashboard/vendor',
-      shopper: '/marketplace',
-      agent: '/dashboard/agent'
+      buyer: '/browse'
     }
     return routes[role] || '/'
   }
@@ -28,7 +27,15 @@ function LoginPage() {
     try {
       const data = await login({ email, password })
       saveAuth(data.token, data.user)
-      navigate(getRoleRoute(data.user.role))
+      
+      const redirectPath = localStorage.getItem('redirectAfterLogin')
+      
+      if (redirectPath) {
+        localStorage.removeItem('redirectAfterLogin')
+        navigate(redirectPath)
+      } else {
+        navigate(getRoleRoute(data.user.role))
+      }
     } catch (err) {
       setError(err.message || 'Login failed. Please try again.')
     } finally {

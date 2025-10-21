@@ -18,12 +18,14 @@ import NotFoundPage from './pages/NotFoundPage'
 import ClientOnboardingPage from './pages/ClientOnboardingPage'
 import ClientNewProjectPage from './pages/ClientNewProjectPage'
 import VendorDashboardPage from './pages/VendorDashboardPage'
-import ShopperMarketplacePage from './pages/ShopperMarketplacePage'
 import AgentDashboardPage from './pages/AgentDashboardPage'
 import ClientProjectDetailPage from './pages/ClientProjectDetailPage'
 import AgentJobDetailPage from './pages/AgentJobDetailPage'
 import ClientItemGalleryPage from './pages/ClientItemGalleryPage'
 import AgentItemGalleryPage from './pages/AgentItemGalleryPage'
+import MarketplacePage from './pages/MarketplacePage'
+import MarketplaceItemDetailPage from './pages/MarketplaceItemDetailPage'
+import CartPage from './pages/CartPage'
 
 function App() {
   return (
@@ -76,15 +78,6 @@ function App() {
           element={
             <ProtectedRoute allowedRoles={['vendor']}>
               <VendorDashboardPage />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/marketplace"
-          element={
-            <ProtectedRoute allowedRoles={['shopper', 'buyer']}>
-              <ShopperMarketplacePage />
             </ProtectedRoute>
           }
         />
@@ -161,6 +154,36 @@ function App() {
             <Header />
             <main className="flex-grow">
               <SignupPage />
+            </main>
+            <Footer />
+          </div>
+        } />
+
+        <Route path="/browse" element={
+          <div className="min-h-screen bg-[#F8F5F0] flex flex-col">
+            <Header />
+            <main className="flex-grow">
+              <MarketplacePage />
+            </main>
+            <Footer />
+          </div>
+        } />
+
+        <Route path="/browse/item/:id" element={
+          <div className="min-h-screen bg-[#F8F5F0] flex flex-col">
+            <Header />
+            <main className="flex-grow">
+              <MarketplaceItemDetailPage />
+            </main>
+            <Footer />
+          </div>
+        } />
+
+        <Route path="/cart" element={
+          <div className="min-h-screen bg-[#F8F5F0] flex flex-col">
+            <Header />
+            <main className="flex-grow">
+              <CartPage />
             </main>
             <Footer />
           </div>

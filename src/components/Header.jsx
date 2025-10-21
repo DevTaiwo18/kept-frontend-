@@ -1,10 +1,35 @@
 import { Link, useNavigate } from 'react-router-dom'
+import { useState, useEffect } from 'react'
 import { getAuth, clearAuth } from '../utils/auth'
+import { getCart, onCartUpdate } from '../utils/cartApi'
 import logo from '../assets/Kept House _transparent logo .png'
 
 function Header() {
   const auth = getAuth()
   const navigate = useNavigate()
+  const [cartCount, setCartCount] = useState(0)
+
+  const fetchCartCount = async () => {
+    if (!auth) {
+      setCartCount(0)
+      return
+    }
+
+    try {
+      const data = await getCart()
+      setCartCount(data.count || 0)
+    } catch (error) {
+      setCartCount(0)
+    }
+  }
+
+  useEffect(() => {
+    fetchCartCount()
+
+    const unsubscribe = onCartUpdate(fetchCartCount)
+    
+    return unsubscribe
+  }, [auth])
 
   const handleLogout = () => {
     clearAuth()
@@ -32,6 +57,13 @@ function Header() {
               Home
             </Link>
             <Link 
+              to="/browse"
+              className="px-4 py-2 rounded-lg hover:bg-[#edd88c] hover:text-black transition-all text-sm font-medium"
+              style={{ fontFamily: 'Inter, sans-serif' }}
+            >
+              Browse Items
+            </Link>
+            <Link 
               to="/about"
               className="px-4 py-2 rounded-lg hover:bg-[#edd88c] hover:text-black transition-all text-sm font-medium"
               style={{ fontFamily: 'Inter, sans-serif' }}
@@ -55,6 +87,20 @@ function Header() {
           </nav>
 
           <div className="flex items-center gap-2">
+            {auth && (
+              <Link
+                to="/cart"
+                className="relative px-3 py-2 hover:opacity-80 transition-opacity"
+              >
+                <span className="text-2xl">🛒</span>
+                {cartCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-[#e6c35a] text-black text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                    {cartCount}
+                  </span>
+                )}
+              </Link>
+            )}
+            
             {auth ? (
               <button 
                 onClick={handleLogout}
@@ -86,6 +132,7 @@ function Header() {
 
         <div className="md:hidden flex justify-center gap-4 pb-3 border-t border-[#707072]/20 pt-3">
           <Link to="/" className="text-xs hover:text-[#e6c35a]" style={{ fontFamily: 'Inter, sans-serif' }}>Home</Link>
+          <Link to="/browse" className="text-xs hover:text-[#e6c35a]" style={{ fontFamily: 'Inter, sans-serif' }}>Browse</Link>
           <Link to="/about" className="text-xs hover:text-[#e6c35a]" style={{ fontFamily: 'Inter, sans-serif' }}>About</Link>
           <Link to="/contact" className="text-xs hover:text-[#e6c35a]" style={{ fontFamily: 'Inter, sans-serif' }}>Contact</Link>
           <a href="tel:+15136094731" className="text-xs text-[#e6c35a]" style={{ fontFamily: 'Inter, sans-serif' }}>📞 Call</a>

@@ -19,7 +19,7 @@ function SignupPage() {
     const routes = {
       Client: '/onboarding',
       Vendor: '/dashboard/vendor',
-      Buyer: '/marketplace'
+      Buyer: '/browse'
     }
     return routes[role] || '/'
   }
@@ -45,7 +45,15 @@ function SignupPage() {
 
       const data = await register(payload)
       saveAuth(data.token, data.user)
-      navigate(getRoleRoute(formData.role))
+      
+      const redirectPath = localStorage.getItem('redirectAfterLogin')
+      
+      if (redirectPath) {
+        localStorage.removeItem('redirectAfterLogin')
+        navigate(redirectPath)
+      } else {
+        navigate(getRoleRoute(formData.role))
+      }
     } catch (err) {
       setError(err.message || 'Registration failed. Please try again.')
     } finally {

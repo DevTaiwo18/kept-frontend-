@@ -214,6 +214,13 @@ function AgentItemGalleryPage() {
   const selectedCount = Object.values(selectedItems).filter(v => v).length
   const totalNewItems = newAiItems.length
 
+  // Check if all selected items have a price filled
+  const allSelectedHavePrice = Object.keys(selectedItems).every(index => {
+    if (!selectedItems[index]) return true // Skip unselected items
+    const price = editedItems[index]?.price
+    return price && price.toString().trim() !== '' && parseFloat(price) > 0
+  })
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-[#F8F5F0] flex items-center justify-center">
@@ -364,15 +371,18 @@ function AgentItemGalleryPage() {
         {item.status === 'needs_review' && hasUnanalyzedPhotos && (
           <div className="mb-6 p-4 bg-orange-50 rounded-lg border border-orange-200">
             <p className="text-sm text-orange-800 font-semibold mb-1" style={{ fontFamily: 'Inter, sans-serif' }}>
-              🔄 New photos need AI analysis
+              {item.approvedItems && item.approvedItems.length > 0 ? '🔄 New photos need AI analysis' : '📸 Ready to analyze'}
             </p>
             <p className="text-sm text-orange-800" style={{ fontFamily: 'Inter, sans-serif' }}>
-              {unanalyzedPhotos.length} new photo(s) uploaded. Run AI analysis below to process only the new photos. Previously approved items remain unchanged.
+              {item.approvedItems && item.approvedItems.length > 0 
+                ? `${unanalyzedPhotos.length} new photo(s) uploaded. Run AI analysis below to process only the new photos. Previously approved items remain unchanged.`
+                : `${unanalyzedPhotos.length} photo(s) uploaded. Run AI analysis below to get started.`
+              }
             </p>
           </div>
         )}
 
-        {item.status === 'needs_review' && !hasUnanalyzedPhotos && (
+        {item.status === 'needs_review' && !hasUnanalyzedPhotos && item.approvedItems && item.approvedItems.length > 0 && (
           <div className="mb-6 p-4 bg-orange-50 rounded-lg border border-orange-200">
             <p className="text-sm text-orange-800 font-semibold mb-1" style={{ fontFamily: 'Inter, sans-serif' }}>
               🔄 Item reopened for changes
@@ -666,12 +676,20 @@ function AgentItemGalleryPage() {
                     
                     <button
                       onClick={handleBatchApprove}
-                      disabled={isApproving || selectedCount === 0}
+                      disabled={isApproving || selectedCount === 0 || !allSelectedHavePrice}
                       className="w-full px-6 py-4 bg-green-600 text-white rounded-lg font-bold hover:bg-green-700 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                       style={{ fontFamily: 'Inter, sans-serif' }}
                     >
                       {isApproving ? 'Approving...' : `✓ Approve ${selectedCount} Selected Item${selectedCount !== 1 ? 's' : ''}`}
                     </button>
+
+                    {!allSelectedHavePrice && selectedCount > 0 && (
+                      <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                        <p className="text-xs text-yellow-800" style={{ fontFamily: 'Inter, sans-serif' }}>
+                          ⚠️ <strong>Missing Prices:</strong> Please enter a final price for all selected items before approving.
+                        </p>
+                      </div>
+                    )}
 
                     {approveError && (
                       <div className="mt-4 p-4 bg-red-50 border-2 border-red-300 rounded-lg">
@@ -701,7 +719,11 @@ function AgentItemGalleryPage() {
           </div>
         )}
 
-        {item.photos && item.photos.length > 0 && (isApproved || !item.ai || item.ai.length === 0) && !item.approvedItems?.length && (
+        {item.photos && item.photos.length > 0 && 
+         item.status === 'draft' && 
+         !item.ai && 
+         !item.approvedItems?.length && 
+         !hasUnanalyzedPhotos && (
           <div>
             <h3 className="text-lg font-bold text-[#101010] mb-4" style={{ fontFamily: 'Playfair Display, serif' }}>
               Uploaded Photos
