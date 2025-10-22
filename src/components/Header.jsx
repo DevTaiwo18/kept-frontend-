@@ -1,11 +1,11 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { useState, useEffect } from 'react'
-import { getAuth, clearAuth } from '../utils/auth'
-import { getCart, onCartUpdate } from '../utils/cartApi'
+import { getAuth, clearAuth, onAuthUpdate } from '../utils/auth'
+import { getCart, getCachedCart, onCartUpdate } from '../utils/cartApi'
 import logo from '../assets/Kept House _transparent logo .png'
 
 function Header() {
-  const auth = getAuth()
+  const [auth, setAuth] = useState(getAuth())
   const navigate = useNavigate()
   const [cartCount, setCartCount] = useState(0)
 
@@ -16,8 +16,16 @@ function Header() {
     }
 
     try {
+      const cached = getCachedCart()
+      
+      if (cached) {
+        const count = cached.count || cached.cartItemCount || 0
+        setCartCount(count)
+      }
+      
       const data = await getCart()
-      setCartCount(data.count || 0)
+      const count = data.count || data.cartItemCount || 0
+      setCartCount(count)
     } catch (error) {
       setCartCount(0)
     }
@@ -26,13 +34,25 @@ function Header() {
   useEffect(() => {
     fetchCartCount()
 
-    const unsubscribe = onCartUpdate(fetchCartCount)
+    const unsubscribeCart = onCartUpdate(() => {
+      fetchCartCount()
+    })
     
-    return unsubscribe
+    const unsubscribeAuth = onAuthUpdate(() => {
+      const newAuth = getAuth()
+      setAuth(newAuth)
+      fetchCartCount()
+    })
+    
+    return () => {
+      unsubscribeCart()
+      unsubscribeAuth()
+    }
   }, [auth])
 
   const handleLogout = () => {
     clearAuth()
+    setCartCount(0)
     navigate('/')
   }
 

@@ -12,6 +12,12 @@ function AdminForgotPasswordPage() {
         e.preventDefault()
         setError('')
         setSuccess(false)
+
+        if (email !== 'admin@keptestate.com') {
+            setError('Invalid admin email address.')
+            return
+        }
+
         setIsLoading(true)
 
         try {

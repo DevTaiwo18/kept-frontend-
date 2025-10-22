@@ -26,6 +26,9 @@ import AgentItemGalleryPage from './pages/AgentItemGalleryPage'
 import MarketplacePage from './pages/MarketplacePage'
 import MarketplaceItemDetailPage from './pages/MarketplaceItemDetailPage'
 import CartPage from './pages/CartPage'
+import OrderSuccessPage from './pages/OrderSuccessPage'
+import OrdersPage from './pages/OrdersPage'
+import OrderDetailPage from './pages/OrderDetailPage'
 
 function App() {
   return (
@@ -204,6 +207,36 @@ function App() {
             <Header />
             <main className="flex-grow">
               <ResetPasswordPage />
+            </main>
+            <Footer />
+          </div>
+        } />
+
+        <Route path="/orders" element={
+          <div className="min-h-screen bg-[#F8F5F0] flex flex-col">
+            <Header />
+            <main className="flex-grow">
+              <OrdersPage />
+            </main>
+            <Footer />
+          </div>
+        } />
+
+        <Route path="/order/:id" element={
+          <div className="min-h-screen bg-[#F8F5F0] flex flex-col">
+            <Header />
+            <main className="flex-grow">
+              <OrderDetailPage />
+            </main>
+            <Footer />
+          </div>
+        } />
+
+        <Route path="/order-success" element={
+          <div className="min-h-screen bg-[#F8F5F0] flex flex-col">
+            <Header />
+            <main className="flex-grow">
+              <OrderSuccessPage />
             </main>
             <Footer />
           </div>

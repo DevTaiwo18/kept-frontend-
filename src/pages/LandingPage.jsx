@@ -58,57 +58,43 @@ function LandingPage() {
         </div>
       </section>
 
-      <section className="py-16 px-4 bg-gradient-to-b from-white to-[#F8F5F0]">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 
-              className="text-3xl sm:text-4xl font-bold text-[#101010] mb-4" 
-              style={{ fontFamily: 'Playfair Display, serif' }}
-            >
-              Featured Estate Items
-            </h2>
-            <p 
-              className="text-lg text-[#707072] max-w-2xl mx-auto" 
-              style={{ fontFamily: 'Inter, sans-serif' }}
-            >
-              Discover unique treasures from carefully curated estate collections
-            </p>
-          </div>
-
-          {loading ? (
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[1, 2, 3, 4, 5, 6].map((i) => (
-                <div key={i} className="bg-gray-200 animate-pulse rounded-xl h-96" />
-              ))}
-            </div>
-          ) : featuredItems.length > 0 ? (
-            <>
-              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
-                {featuredItems.map((item) => (
-                  <MarketplaceItemCard key={item._id} item={item} />
-                ))}
-              </div>
-              
-              <div className="text-center">
-                <Link 
-                  to="/browse"
-                  className="inline-flex items-center gap-2 px-10 py-4 bg-[#101010] text-white rounded-lg font-bold hover:bg-[#2a2a2a] transition-all shadow-lg text-lg group"
-                  style={{ fontFamily: 'Inter, sans-serif' }}
-                >
-                  Browse All Items
-                  <span className="group-hover:translate-x-1 transition-transform">→</span>
-                </Link>
-              </div>
-            </>
-          ) : (
-            <div className="text-center py-12">
-              <p className="text-[#707072] text-lg" style={{ fontFamily: 'Inter, sans-serif' }}>
-                No items available at the moment. Check back soon!
+      {!loading && featuredItems.length > 0 && (
+        <section className="py-16 px-4 bg-gradient-to-b from-white to-[#F8F5F0]">
+          <div className="max-w-6xl mx-auto">
+            <div className="text-center mb-12">
+              <h2 
+                className="text-3xl sm:text-4xl font-bold text-[#101010] mb-4" 
+                style={{ fontFamily: 'Playfair Display, serif' }}
+              >
+                Featured Estate Items
+              </h2>
+              <p 
+                className="text-lg text-[#707072] max-w-2xl mx-auto" 
+                style={{ fontFamily: 'Inter, sans-serif' }}
+              >
+                Discover unique treasures from carefully curated estate collections
               </p>
             </div>
-          )}
-        </div>
-      </section>
+
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
+              {featuredItems.map((item) => (
+                <MarketplaceItemCard key={item._id} item={item} />
+              ))}
+            </div>
+            
+            <div className="text-center">
+              <Link 
+                to="/browse"
+                className="inline-flex items-center gap-2 px-10 py-4 bg-[#101010] text-white rounded-lg font-bold hover:bg-[#2a2a2a] transition-all shadow-lg text-lg group"
+                style={{ fontFamily: 'Inter, sans-serif' }}
+              >
+                Browse All Items
+                <span className="group-hover:translate-x-1 transition-transform">→</span>
+              </Link>
+            </div>
+          </div>
+        </section>
+      )}
 
       <section className="py-16 px-4 bg-white">
         <div className="max-w-6xl mx-auto">

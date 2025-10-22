@@ -101,7 +101,7 @@ function MarketplacePage() {
 
   const handlePageChange = (newPage) => {
     setPage(newPage)
-    window.scrollTo({ top: 0, behavior: 'smooth' })
+    window.scrollTo(0, 0)
   }
 
   const totalPages = Math.ceil(total / 24)

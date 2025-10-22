@@ -13,6 +13,12 @@ function AdminLoginPage() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
+
+    if (email !== 'admin@keptestate.com') {
+      setError('Invalid admin email address.')
+      return
+    }
+
     setIsLoading(true)
 
     try {
@@ -122,20 +128,6 @@ function AdminLoginPage() {
             </button>
           </form>
 
-          <div className="mt-6 text-center">
-            <p 
-              className="text-sm text-[#707072]" 
-              style={{ fontFamily: 'Inter, sans-serif' }}
-            >
-              Need an admin account?{' '}
-              <Link 
-                to="/admin/signup" 
-                className="text-[#1c449e] hover:text-[#e6c35a] font-semibold transition-colors"
-              >
-                Sign Up
-              </Link>
-            </p>
-          </div>
         </div>
 
       </div>
