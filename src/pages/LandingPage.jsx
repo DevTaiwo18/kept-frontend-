@@ -11,7 +11,9 @@ function LandingPage() {
     const fetchFeaturedItems = async () => {
       try {
         const response = await getMarketplaceItems({ limit: 6, sort: 'new' })
-        setFeaturedItems(response.items || [])
+        const items = response.items || []
+        const displayItems = items.length < 6 ? items.slice(0, 3) : items
+        setFeaturedItems(displayItems)
       } catch (error) {
         
       } finally {

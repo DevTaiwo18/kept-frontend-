@@ -1,23 +1,27 @@
 import { useState, useEffect } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { getAuth, clearAuth } from '../utils/auth'
-import { getClientJobById } from '../utils/clientJobsApi'
+import { getClientJobById, payClientJobDeposit } from '../utils/clientJobsApi'
 import { getJobItems, createItem, uploadItemPhotos } from '../utils/itemsApi'
 import logo from '../assets/Kept House _transparent logo .png'
 
 function ClientProjectDetailPage() {
   const { id } = useParams()
+  const [searchParams] = useSearchParams()
   const auth = getAuth()
   const navigate = useNavigate()
   const [project, setProject] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
-  const [items, setItems] = useState([])
+  const [item, setItem] = useState(null)
   const [isLoadingItems, setIsLoadingItems] = useState(false)
   const [showUploadModal, setShowUploadModal] = useState(false)
   const [selectedFiles, setSelectedFiles] = useState([])
   const [isUploading, setIsUploading] = useState(false)
   const [uploadError, setUploadError] = useState('')
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false)
+  const [paymentError, setPaymentError] = useState('')
+  const [showSuccessModal, setShowSuccessModal] = useState(false)
 
   const handleLogout = () => {
     clearAuth()
@@ -27,7 +31,12 @@ function ClientProjectDetailPage() {
   useEffect(() => {
     loadProject()
     loadItems()
-  }, [id])
+    
+    const paymentStatus = searchParams.get('payment')
+    if (paymentStatus === 'success') {
+      setShowSuccessModal(true)
+    }
+  }, [id, searchParams])
 
   const loadProject = async () => {
     try {
@@ -46,7 +55,8 @@ function ClientProjectDetailPage() {
     try {
       setIsLoadingItems(true)
       const data = await getJobItems(id)
-      setItems(Array.isArray(data) ? data : data.items || [])
+      const items = Array.isArray(data) ? data : data.items || []
+      setItem(items.length > 0 ? items[0] : null)
     } catch (err) {
       console.error('Failed to load items:', err)
     } finally {
@@ -54,13 +64,26 @@ function ClientProjectDetailPage() {
     }
   }
 
-  const hasApprovedItems = items.some(item => item.status === 'approved')
-  
-  const allItemsApproved = items.length > 0 && items.every(item => item.status === 'approved')
+  const handlePayDeposit = async () => {
+    try {
+      setIsProcessingPayment(true)
+      setPaymentError('')
+      const response = await payClientJobDeposit(id)
 
+      if (response.url) {
+        window.location.href = response.url
+      }
+    } catch (err) {
+      setPaymentError(err.message || 'Failed to initiate payment')
+    } finally {
+      setIsProcessingPayment(false)
+    }
+  }
+
+  const hasApprovedItems = item && item.status === 'approved'
   const canUpload = !hasApprovedItems
 
-  const handleCreateItem = async () => {
+  const handleCreateNewItem = async () => {
     if (!canUpload) {
       return
     }
@@ -71,14 +94,8 @@ function ClientProjectDetailPage() {
 
   const handleFileSelect = (e) => {
     const files = Array.from(e.target.files)
-    
-    if (files.length > 10) {
-      setUploadError('Maximum 10 photos can be uploaded at a time')
-      setSelectedFiles(files.slice(0, 10))
-    } else {
-      setSelectedFiles(files)
-      setUploadError('')
-    }
+    setSelectedFiles(files)
+    setUploadError('')
   }
 
   const handleUpload = async () => {
@@ -95,17 +112,14 @@ function ClientProjectDetailPage() {
       setIsUploading(true)
       setUploadError('')
 
-      let itemId = null
+      let currentItem = item
 
-      if (items.length > 0) {
-        itemId = items[0]._id
-      } else {
-        const newItem = await createItem(id)
-        itemId = newItem._id
+      if (!currentItem) {
+        currentItem = await createItem(id)
       }
 
-      await uploadItemPhotos(itemId, selectedFiles)
-      
+      await uploadItemPhotos(currentItem._id, selectedFiles)
+
       await loadItems()
       setShowUploadModal(false)
       setSelectedFiles([])
@@ -147,6 +161,49 @@ function ClientProjectDetailPage() {
     })
   }
 
+  const formatDateTime = (date) => {
+    return new Date(date).toLocaleString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    })
+  }
+
+  const calculateKeptHouseCommission = (grossSales) => {
+    let commission = 0
+    
+    if (grossSales <= 7500) {
+      commission = grossSales * 0.50
+    } else if (grossSales <= 20000) {
+      commission = (7500 * 0.50) + ((grossSales - 7500) * 0.40)
+    } else {
+      commission = (7500 * 0.50) + (12500 * 0.40) + ((grossSales - 20000) * 0.30)
+    }
+    
+    return Math.round(commission * 100) / 100
+  }
+
+  const calculateFinancials = () => {
+    const gross = project?.finance?.gross || 0
+    const serviceFee = (project?.serviceFee && project.serviceFee > 0) ? project.serviceFee : 0
+    const hauling = project?.finance?.haulingCost || 0
+    const depositPaid = (project?.depositAmount && project.depositAmount > 0 && project.depositPaidAt) ? project.depositAmount : 0
+    
+    const keptHouseCommission = calculateKeptHouseCommission(gross)
+    const net = gross - serviceFee - keptHouseCommission - hauling + depositPaid
+
+    return {
+      gross,
+      serviceFee,
+      keptHouseCommission,
+      hauling,
+      depositPaid,
+      net
+    }
+  }
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-[#F8F5F0] flex items-center justify-center">
@@ -163,10 +220,10 @@ function ClientProjectDetailPage() {
         <header className="bg-[#101010] text-[#F8F5F0] shadow-lg">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <div className="flex justify-between items-center">
-              <img src={logo} alt="Kept House" className="h-12 w-auto" />
-              <button 
+              <img src={logo} alt="Kept House" className="h-10 sm:h-12 w-auto" />
+              <button
                 onClick={handleLogout}
-                className="px-4 py-2 bg-[#707072] text-[#F8F5F0] rounded-lg text-sm font-medium hover:bg-gray-600 transition-all"
+                className="px-3 py-2 sm:px-4 sm:py-2 bg-[#707072] text-[#F8F5F0] rounded-lg text-xs sm:text-sm font-medium hover:bg-gray-600 transition-all"
                 style={{ fontFamily: 'Inter, sans-serif' }}
               >
                 Logout
@@ -176,7 +233,7 @@ function ClientProjectDetailPage() {
         </header>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
-            <p className="text-red-600" style={{ fontFamily: 'Inter, sans-serif' }}>
+            <p className="text-sm sm:text-base text-red-600" style={{ fontFamily: 'Inter, sans-serif' }}>
               {error || 'Project not found'}
             </p>
             <button
@@ -194,20 +251,21 @@ function ClientProjectDetailPage() {
 
   const currentStageIndex = getStageIndex(project.stage)
   const progressPercentage = ((currentStageIndex + 1) / stages.length) * 100
+  const financials = calculateFinancials()
 
   return (
     <div className="min-h-screen bg-[#F8F5F0]">
       <header className="bg-[#101010] text-[#F8F5F0] shadow-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex justify-between items-center">
-            <img src={logo} alt="Kept House" className="h-12 w-auto" />
-            <div className="flex items-center gap-4">
-              <span className="text-sm text-[#e6c35a]" style={{ fontFamily: 'Inter, sans-serif' }}>
+            <img src={logo} alt="Kept House" className="h-10 sm:h-12 w-auto" />
+            <div className="flex items-center gap-2 sm:gap-4">
+              <span className="text-xs sm:text-sm text-[#e6c35a] truncate max-w-[120px] sm:max-w-none" style={{ fontFamily: 'Inter, sans-serif' }}>
                 {auth?.user?.name}
               </span>
-              <button 
+              <button
                 onClick={handleLogout}
-                className="px-4 py-2 bg-[#707072] text-[#F8F5F0] rounded-lg text-sm font-medium hover:bg-gray-600 transition-all"
+                className="px-3 py-2 sm:px-4 sm:py-2 bg-[#707072] text-[#F8F5F0] rounded-lg text-xs sm:text-sm font-medium hover:bg-gray-600 transition-all"
                 style={{ fontFamily: 'Inter, sans-serif' }}
               >
                 Logout
@@ -217,26 +275,72 @@ function ClientProjectDetailPage() {
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         <button
           onClick={() => navigate('/onboarding')}
-          className="text-[#707072] hover:text-[#101010] mb-6 flex items-center gap-2"
+          className="text-sm sm:text-base text-[#707072] hover:text-[#101010] mb-6 flex items-center gap-2"
           style={{ fontFamily: 'Inter, sans-serif' }}
         >
           ← Back to Dashboard
         </button>
 
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-[#101010] mb-2" style={{ fontFamily: 'Playfair Display, serif' }}>
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold text-[#101010] mb-2" style={{ fontFamily: 'Playfair Display, serif' }}>
             {project.contractSignor}
           </h1>
-          <p className="text-[#707072]" style={{ fontFamily: 'Inter, sans-serif' }}>
+          <p className="text-sm sm:text-base text-[#707072]" style={{ fontFamily: 'Inter, sans-serif' }}>
             {project.propertyAddress}
           </p>
         </div>
 
-        <div className="bg-white p-6 rounded-xl shadow-md mb-6">
-          <h3 className="text-lg font-bold text-[#101010] mb-4" style={{ fontFamily: 'Playfair Display, serif' }}>
+        {project.status === 'awaiting_deposit' && project.serviceFee > 0 && (
+          <div className="mb-6 p-4 sm:p-6 bg-blue-50 border-l-4 border-blue-500 rounded-lg">
+            <div className="flex items-start gap-3">
+              <svg className="w-6 h-6 text-blue-600 flex-shrink-0 mt-1" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+              </svg>
+              <div className="flex-1">
+                <h3 className="text-sm sm:text-base font-bold text-blue-900 mb-2" style={{ fontFamily: 'Inter, sans-serif' }}>
+                  Initial Deposit Required
+                </h3>
+                <p className="text-sm text-blue-800 mb-4" style={{ fontFamily: 'Inter, sans-serif' }}>
+                  An initial deposit of <strong>{formatCurrency(project.depositAmount)}</strong> is required to activate your project.
+                </p>
+
+                {project.scopeNotes && (
+                  <div className="mb-4 p-3 bg-white rounded-lg border border-blue-200">
+                    <p className="text-xs font-semibold text-blue-900 mb-1" style={{ fontFamily: 'Inter, sans-serif' }}>
+                      Contract Details
+                    </p>
+                    <p className="text-sm text-blue-800 whitespace-pre-wrap" style={{ fontFamily: 'Inter, sans-serif' }}>
+                      {project.scopeNotes}
+                    </p>
+                  </div>
+                )}
+
+                {paymentError && (
+                  <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                    <p className="text-sm text-red-600" style={{ fontFamily: 'Inter, sans-serif' }}>
+                      {paymentError}
+                    </p>
+                  </div>
+                )}
+
+                <button
+                  onClick={handlePayDeposit}
+                  disabled={isProcessingPayment}
+                  className="w-full sm:w-auto px-6 py-3 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+                  style={{ fontFamily: 'Inter, sans-serif' }}
+                >
+                  {isProcessingPayment ? 'Processing...' : `Pay ${formatCurrency(project.depositAmount)} Now`}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div className="bg-white p-4 sm:p-6 rounded-xl shadow-md mb-6">
+          <h3 className="text-base sm:text-lg font-bold text-[#101010] mb-4" style={{ fontFamily: 'Playfair Display, serif' }}>
             Project Progress
           </h3>
           <div className="relative pt-1">
@@ -253,19 +357,17 @@ function ClientProjectDetailPage() {
               </div>
             </div>
             <div className="overflow-hidden h-2 mb-4 text-xs flex rounded bg-[#F8F5F0]">
-              <div 
-                style={{ width: `${progressPercentage}%` }} 
+              <div
+                style={{ width: `${progressPercentage}%` }}
                 className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-[#e6c35a] transition-all duration-500"
               ></div>
             </div>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2 mt-4">
             {stages.map((stage, i) => (
-              <div 
-                key={stage.key} 
-                className={`text-center p-2 rounded text-xs ${
-                  i <= currentStageIndex ? 'bg-[#e6c35a]/20 text-[#101010] font-semibold' : 'bg-gray-100 text-[#707072]'
-                }`}
+              <div
+                key={stage.key}
+                className={`text-center p-2 rounded text-xs ${i <= currentStageIndex ? 'bg-[#e6c35a]/20 text-[#101010] font-semibold' : 'bg-gray-100 text-[#707072]'}`}
                 style={{ fontFamily: 'Inter, sans-serif' }}
               >
                 {stage.label}
@@ -274,64 +376,64 @@ function ClientProjectDetailPage() {
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-xl shadow-md mb-6">
+        <div className="bg-white p-4 sm:p-6 rounded-xl shadow-md mb-6">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
             <div>
-              <h3 className="text-lg font-bold text-[#101010]" style={{ fontFamily: 'Playfair Display, serif' }}>
+              <h3 className="text-base sm:text-lg font-bold text-[#101010]" style={{ fontFamily: 'Playfair Display, serif' }}>
                 Inventory Items
               </h3>
               <p className="text-sm text-[#707072]" style={{ fontFamily: 'Inter, sans-serif' }}>
-                {canUpload 
-                  ? 'Upload clear photos of each item'
+                {canUpload
+                  ? 'Upload photos for each item in batches'
                   : 'Your items are being reviewed by our team'
                 }
               </p>
             </div>
             <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-              {items.length > 0 && (
+              {item && item.photoGroups && item.photoGroups.length > 0 && (
                 <button
-                  onClick={() => navigate(`/client/item/${items[0]._id}`)}
-                  className="w-full sm:w-auto px-6 py-3 bg-white border-2 border-[#707072] text-[#101010] rounded-lg font-semibold hover:bg-gray-50 transition-all"
+                  onClick={() => navigate(`/client/item/${item._id}`)}
+                  className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-3 bg-white border-2 border-[#707072] text-[#101010] rounded-lg font-semibold hover:bg-gray-50 transition-all text-sm sm:text-base"
                   style={{ fontFamily: 'Inter, sans-serif' }}
                 >
-                  View All
+                  View All Items
                 </button>
               )}
               {canUpload && (
                 <button
-                  onClick={handleCreateItem}
-                  className="w-full sm:w-auto px-6 py-3 bg-[#e6c35a] text-black rounded-lg font-bold hover:bg-[#edd88c] transition-all shadow-md"
+                  onClick={handleCreateNewItem}
+                  className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-3 bg-[#e6c35a] text-black rounded-lg font-bold hover:bg-[#edd88c] transition-all shadow-md text-sm sm:text-base whitespace-nowrap"
                   style={{ fontFamily: 'Inter, sans-serif' }}
                 >
-                  + Upload Photos
+                  + Add New Item
                 </button>
               )}
             </div>
           </div>
 
-          {items.length === 0 && (
-            <div className="mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
-              <p className="text-sm text-blue-800" style={{ fontFamily: 'Inter, sans-serif' }}>
-                📸 <strong>Get started:</strong> Upload clear photos of each item. Avoid duplicates. You can add more before your agent approves.
+          {(!item || !item.photoGroups || item.photoGroups.length === 0) && (
+            <div className="mb-4 p-3 sm:p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+              <p className="text-sm text-yellow-800" style={{ fontFamily: 'Inter, sans-serif' }}>
+                💡 <strong>Tip:</strong> For best marketplace results, we recommend at least 4 clear photos per item showing different angles.
               </p>
             </div>
           )}
 
-          {items.length > 0 && canUpload && !allItemsApproved && (
-            <div className="mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
-              <p className="text-sm text-blue-800" style={{ fontFamily: 'Inter, sans-serif' }}>
-                💡 <strong>Tip:</strong> You can continue adding photos until your agent approves your items!
+          {item && canUpload && item.status !== 'approved' && (
+            <div className="mb-4 p-3 sm:p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+              <p className="text-sm text-yellow-800" style={{ fontFamily: 'Inter, sans-serif' }}>
+                💡 <strong>Tip:</strong> For best marketplace results, we recommend at least 4 clear photos per item showing different angles.
               </p>
             </div>
           )}
 
-          {allItemsApproved && (
-            <div className="mb-4 p-4 bg-green-50 rounded-lg border border-green-200">
+          {hasApprovedItems && (
+            <div className="mb-4 p-3 sm:p-4 bg-green-50 rounded-lg border border-green-200">
               <p className="text-sm text-green-800 font-semibold mb-1" style={{ fontFamily: 'Inter, sans-serif' }}>
                 ✓ All items approved!
               </p>
               <p className="text-sm text-green-800" style={{ fontFamily: 'Inter, sans-serif' }}>
-                Your items are ready for listing. To add more photos, please contact your agent at{' '}
+                Your items are ready for listing. To add more items, please contact your agent at{' '}
                 <a href="mailto:admin@keptestate.com" className="underline font-semibold">admin@keptestate.com</a>
               </p>
             </div>
@@ -341,7 +443,7 @@ function ClientProjectDetailPage() {
             <div className="text-center py-8">
               <p className="text-[#707072]" style={{ fontFamily: 'Inter, sans-serif' }}>Loading items...</p>
             </div>
-          ) : items.length === 0 ? (
+          ) : !item || !item.photoGroups || item.photoGroups.length === 0 ? (
             <div className="text-center py-12 bg-[#F8F5F0] rounded-lg">
               <svg className="mx-auto w-16 h-16 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
@@ -350,112 +452,75 @@ function ClientProjectDetailPage() {
                 No items added yet
               </p>
               <p className="text-sm text-[#707072]" style={{ fontFamily: 'Inter, sans-serif' }}>
-                Click "Upload Photos" above to get started
+                Click "Add New Item" above to upload photos for your first item
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 gap-4">
-              {items.map((item) => (
-                <div 
-                  key={item._id}
-                  className="border-2 rounded-lg overflow-hidden transition-all bg-white hover:border-[#e6c35a] border-gray-200 cursor-pointer"
-                  onClick={() => navigate(`/client/item/${item._id}`)}
-                >
-                  <div className="p-4">
-                    {item.status !== 'approved' && item.photos && item.photos.length > 0 && (
-                      <div className="grid grid-cols-3 gap-3 mb-4">
-                        {item.photos.slice(0, 3).map((photo, idx) => (
-                          <div key={idx} className="relative h-32 overflow-hidden rounded-lg">
-                            <img 
-                              src={photo} 
-                              alt={`Photo ${idx + 1}`} 
-                              className="w-full h-full object-cover"
-                            />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {item.photoGroups.slice(0, 3).map((group) => {
+                const firstPhotoIndex = group.startIndex
+                const photoUrl = item.photos[firstPhotoIndex]
+                
+                return (
+                  <div
+                    key={group.itemNumber}
+                    className="border-2 rounded-lg overflow-hidden transition-all bg-white hover:border-[#e6c35a] border-gray-200"
+                  >
+                    {photoUrl ? (
+                      <div className="relative h-48 sm:h-56 overflow-hidden">
+                        <img
+                          src={photoUrl}
+                          alt={group.title}
+                          className="w-full h-full object-cover"
+                        />
+                        {group.photoCount > 1 && (
+                          <div className="absolute bottom-2 right-2 bg-black/70 text-white px-3 py-1.5 rounded-lg">
+                            <span className="text-sm font-bold" style={{ fontFamily: 'Inter, sans-serif' }}>
+                              +{group.photoCount - 1}
+                            </span>
                           </div>
-                        ))}
+                        )}
                       </div>
-                    )}
-                    
-                    {item.status !== 'approved' && (!item.photos || item.photos.length === 0) && (
-                      <div className="h-32 bg-gray-100 flex items-center justify-center rounded-lg mb-4">
-                        <svg className="w-12 h-12 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    ) : (
+                      <div className="h-48 sm:h-56 bg-gray-100 flex items-center justify-center">
+                        <svg className="w-16 h-16 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                         </svg>
                       </div>
                     )}
-                    
-                    <div className="flex justify-between items-center">
-                      <div className="flex-1">
-                        {item.title ? (
-                          <h4 className="font-semibold text-[#101010]" style={{ fontFamily: 'Inter, sans-serif' }}>
-                            {item.title}
-                          </h4>
-                        ) : (
-                          <p className="text-sm text-[#707072]" style={{ fontFamily: 'Inter, sans-serif' }}>
-                            {item.photos?.length || 0} photo(s) uploaded
-                          </p>
-                        )}
-                      </div>
-                      <span 
-                        className={`px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap ml-3 ${
-                          item.status === 'approved' ? 'bg-green-100 text-green-800' :
-                          item.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                          'bg-blue-100 text-blue-800'
-                        }`}
-                        style={{ fontFamily: 'Inter, sans-serif' }}
-                      >
-                        {item.status === 'draft' ? 'Awaiting Review' : 
-                         item.status === 'approved' ? 'Approved' :
-                         item.status}
-                      </span>
-                    </div>
-                    
-                    {item.status === 'draft' && (
-                      <div className="mt-3 p-2 bg-blue-50 rounded border border-blue-200">
-                        <p className="text-xs text-blue-800" style={{ fontFamily: 'Inter, sans-serif' }}>
-                          ✓ Photos uploaded! Our team will review and list these items soon.
-                        </p>
-                      </div>
-                    )}
-                  </div>
 
-                  {item.status === 'approved' && item.approvedItems && item.approvedItems.length > 0 && (
-                    <div className="px-4 pb-4 border-t border-gray-200 pt-4 bg-gray-50">
-                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                        {item.approvedItems.slice(0, 8).map((approvedItem, idx) => (
-                          <div key={idx} className="relative group">
-                            <img
-                              src={item.photos[approvedItem.photoIndex]}
-                              alt={approvedItem.title || `Item ${idx + 1}`}
-                              className="w-full h-24 object-cover rounded-lg border border-gray-300"
-                            />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-200 rounded-lg p-2 flex flex-col justify-end">
-                              <p className="text-white text-xs font-bold line-clamp-2" style={{ fontFamily: 'Inter, sans-serif' }}>
-                                {approvedItem.title || 'Untitled'}
-                              </p>
-                              <p className="text-white text-xs font-semibold mt-1" style={{ fontFamily: 'Inter, sans-serif' }}>
-                                ${approvedItem.price || '0'}
-                              </p>
-                            </div>
-                          </div>
-                        ))}
+                    <div className="p-3 sm:p-4">
+                      <div className="flex justify-between items-center mb-2">
+                        <h4 className="text-sm sm:text-base font-semibold text-[#101010]" style={{ fontFamily: 'Inter, sans-serif' }}>
+                          {group.title}
+                        </h4>
+                        <span
+                          className={`px-2 sm:px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap ${
+                            item.status === 'approved' ? 'bg-green-100 text-green-800' :
+                            item.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                            'bg-blue-100 text-blue-800'
+                          }`}
+                          style={{ fontFamily: 'Inter, sans-serif' }}
+                        >
+                          {item.status === 'draft' ? 'Awaiting Review' :
+                            item.status === 'approved' ? 'Approved' :
+                            item.status}
+                        </span>
                       </div>
-                      {item.approvedItems.length > 8 && (
-                        <p className="text-xs text-[#707072] mt-3 text-center" style={{ fontFamily: 'Inter, sans-serif' }}>
-                          +{item.approvedItems.length - 8} more items
-                        </p>
-                      )}
+                      <p className="text-xs sm:text-sm text-[#707072]" style={{ fontFamily: 'Inter, sans-serif' }}>
+                        {group.photoCount} photo(s)
+                      </p>
                     </div>
-                  )}
-                </div>
-              ))}
+                  </div>
+                )
+              })}
             </div>
           )}
         </div>
 
-        <div className="grid md:grid-cols-2 gap-6 mb-6">
-          <div className="bg-white p-6 rounded-xl shadow-md">
-            <h3 className="text-lg font-bold text-[#101010] mb-4" style={{ fontFamily: 'Playfair Display, serif' }}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-6">
+          <div className="bg-white p-4 sm:p-6 rounded-xl shadow-md">
+            <h3 className="text-base sm:text-lg font-bold text-[#101010] mb-4" style={{ fontFamily: 'Playfair Display, serif' }}>
               Project Details
             </h3>
             <div className="space-y-3">
@@ -467,7 +532,7 @@ function ClientProjectDetailPage() {
               </div>
               <div>
                 <p className="text-xs text-[#707072] mb-1" style={{ fontFamily: 'Inter, sans-serif' }}>Contact Email</p>
-                <p className="text-sm text-[#101010] font-semibold" style={{ fontFamily: 'Inter, sans-serif' }}>
+                <p className="text-sm text-[#101010] font-semibold break-all" style={{ fontFamily: 'Inter, sans-serif' }}>
                   {project.contactEmail}
                 </p>
               </div>
@@ -488,79 +553,123 @@ function ClientProjectDetailPage() {
             </div>
           </div>
 
-          <div className="bg-white p-6 rounded-xl shadow-md">
-            <h3 className="text-lg font-bold text-[#101010] mb-4" style={{ fontFamily: 'Playfair Display, serif' }}>
+          <div className="bg-white p-4 sm:p-6 rounded-xl shadow-md">
+            <h3 className="text-base sm:text-lg font-bold text-[#101010] mb-4" style={{ fontFamily: 'Playfair Display, serif' }}>
               Financial Summary
             </h3>
             <div className="space-y-3">
               <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                <span className="text-sm text-[#707072]" style={{ fontFamily: 'Inter, sans-serif' }}>Gross Sales</span>
-                <span className="text-sm font-bold text-[#101010]" style={{ fontFamily: 'Inter, sans-serif' }}>
-                  {formatCurrency(project.finance.gross)}
+                <span className="text-xs sm:text-sm text-[#707072]" style={{ fontFamily: 'Inter, sans-serif' }}>Gross Sales</span>
+                <span className="text-xs sm:text-sm font-bold text-[#101010]" style={{ fontFamily: 'Inter, sans-serif' }}>
+                  {formatCurrency(financials.gross)}
                 </span>
               </div>
               <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                <span className="text-sm text-[#707072]" style={{ fontFamily: 'Inter, sans-serif' }}>Fees</span>
-                <span className="text-sm font-bold text-red-600" style={{ fontFamily: 'Inter, sans-serif' }}>
-                  -{formatCurrency(project.finance.fees)}
+                <span className="text-xs sm:text-sm text-[#707072]" style={{ fontFamily: 'Inter, sans-serif' }}>Service Fee</span>
+                <span className="text-xs sm:text-sm font-bold text-red-600" style={{ fontFamily: 'Inter, sans-serif' }}>
+                  -{formatCurrency(financials.serviceFee)}
                 </span>
               </div>
               <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                <span className="text-sm text-[#707072]" style={{ fontFamily: 'Inter, sans-serif' }}>Hauling Cost</span>
-                <span className="text-sm font-bold text-red-600" style={{ fontFamily: 'Inter, sans-serif' }}>
-                  -{formatCurrency(project.finance.haulingCost)}
+                <span className="text-xs sm:text-sm text-[#707072]" style={{ fontFamily: 'Inter, sans-serif' }}>Kept House Commission</span>
+                <span className="text-xs sm:text-sm font-bold text-red-600" style={{ fontFamily: 'Inter, sans-serif' }}>
+                  -{formatCurrency(financials.keptHouseCommission)}
                 </span>
               </div>
-              <div className="flex justify-between items-center py-3 bg-[#e6c35a]/10 -mx-6 px-6 mt-2">
-                <span className="text-base font-bold text-[#101010]" style={{ fontFamily: 'Inter, sans-serif' }}>Net Payout</span>
-                <span className="text-base font-bold text-[#101010]" style={{ fontFamily: 'Inter, sans-serif' }}>
-                  {formatCurrency(project.finance.net)}
+              <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                <span className="text-xs sm:text-sm text-[#707072]" style={{ fontFamily: 'Inter, sans-serif' }}>Hauling Cost</span>
+                <span className="text-xs sm:text-sm font-bold text-red-600" style={{ fontFamily: 'Inter, sans-serif' }}>
+                  -{formatCurrency(financials.hauling)}
+                </span>
+              </div>
+              {financials.depositPaid > 0 && (
+                <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                  <span className="text-xs sm:text-sm text-[#707072]" style={{ fontFamily: 'Inter, sans-serif' }}>Deposit Paid</span>
+                  <span className="text-xs sm:text-sm font-bold text-green-600" style={{ fontFamily: 'Inter, sans-serif' }}>
+                    +{formatCurrency(financials.depositPaid)}
+                  </span>
+                </div>
+              )}
+              <div className="flex justify-between items-center py-2 sm:py-3 bg-[#e6c35a]/10 -mx-4 sm:-mx-6 px-4 sm:px-6 mt-2">
+                <span className="text-sm sm:text-base font-bold text-[#101010]" style={{ fontFamily: 'Inter, sans-serif' }}>Net Payout</span>
+                <span className="text-sm sm:text-base font-bold text-[#101010]" style={{ fontFamily: 'Inter, sans-serif' }}>
+                  {formatCurrency(financials.net)}
                 </span>
               </div>
             </div>
-
-            {project.finance.daily && project.finance.daily.length > 0 && (
-              <div className="mt-4 pt-4 border-t border-gray-200">
-                <p className="text-xs font-semibold text-[#707072] mb-2" style={{ fontFamily: 'Inter, sans-serif' }}>
-                  Daily Breakdown
-                </p>
-                {project.finance.daily.map((day, i) => (
-                  <div key={i} className="flex justify-between items-center py-1">
-                    <span className="text-xs text-[#707072]" style={{ fontFamily: 'Inter, sans-serif' }}>
-                      Day {i + 1}
-                    </span>
-                    <span className="text-xs font-semibold text-[#101010]" style={{ fontFamily: 'Inter, sans-serif' }}>
-                      {formatCurrency(day.sales)}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            )}
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-xl shadow-md mb-6">
-          <h3 className="text-lg font-bold text-[#101010] mb-4" style={{ fontFamily: 'Playfair Display, serif' }}>
-            Services Requested
-          </h3>
-          <div className="flex flex-wrap gap-2">
-            {Object.entries(project.services).map(([key, value]) => 
-              value && (
-                <span 
-                  key={key} 
-                  className="px-3 py-1 bg-[#e6c35a]/20 text-[#101010] rounded-full text-xs font-semibold"
-                  style={{ fontFamily: 'Inter, sans-serif' }}
-                >
-                  {key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
+        {project.serviceFee > 0 && (
+          <div className="bg-white p-4 sm:p-6 rounded-xl shadow-md mb-6">
+            <h3 className="text-base sm:text-lg font-bold text-[#101010] mb-4" style={{ fontFamily: 'Playfair Display, serif' }}>
+              Contract Details
+            </h3>
+            <div className="space-y-3">
+              <div className="flex justify-between items-center py-2">
+                <span className="text-xs sm:text-sm text-[#707072]" style={{ fontFamily: 'Inter, sans-serif' }}>Service Fee</span>
+                <span className="text-xs sm:text-sm font-bold text-[#101010]" style={{ fontFamily: 'Inter, sans-serif' }}>
+                  {formatCurrency(project.serviceFee)}
                 </span>
-              )
-            )}
+              </div>
+              <div className="flex justify-between items-center py-2">
+                <span className="text-xs sm:text-sm text-[#707072]" style={{ fontFamily: 'Inter, sans-serif' }}>Initial Deposit</span>
+                <span className="text-xs sm:text-sm font-bold text-green-600" style={{ fontFamily: 'Inter, sans-serif' }}>
+                  {formatCurrency(project.depositAmount)}
+                </span>
+              </div>
+              <div className="flex justify-between items-center py-2">
+                <span className="text-xs sm:text-sm text-[#707072]" style={{ fontFamily: 'Inter, sans-serif' }}>Balance Due at Closing</span>
+                <span className="text-xs sm:text-sm font-bold text-[#101010]" style={{ fontFamily: 'Inter, sans-serif' }}>
+                  {formatCurrency(project.serviceFee - (project.depositAmount || 0))}
+                </span>
+              </div>
+              {project.depositPaidAt && (
+                <div className="flex justify-between items-center py-2">
+                  <span className="text-xs sm:text-sm text-[#707072]" style={{ fontFamily: 'Inter, sans-serif' }}>Deposit Paid On</span>
+                  <span className="text-xs sm:text-sm font-semibold text-green-600" style={{ fontFamily: 'Inter, sans-serif' }}>
+                    {formatDate(project.depositPaidAt)}
+                  </span>
+                </div>
+              )}
+              {project.scopeNotes && (
+                <div className="pt-3 border-t border-gray-200">
+                  <p className="text-xs font-semibold text-[#707072] mb-2" style={{ fontFamily: 'Inter, sans-serif' }}>
+                    Scope of Work
+                  </p>
+                  <p className="text-xs sm:text-sm text-[#101010] whitespace-pre-wrap" style={{ fontFamily: 'Inter, sans-serif' }}>
+                    {project.scopeNotes}
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
-        </div>
+        )}
 
-        {(project.specialRequests.notForSale || project.specialRequests.restrictedAreas) && (
-          <div className="bg-white p-6 rounded-xl shadow-md mb-6">
-            <h3 className="text-lg font-bold text-[#101010] mb-4" style={{ fontFamily: 'Playfair Display, serif' }}>
+        {project.services && Object.values(project.services).some(v => v) && (
+          <div className="bg-white p-4 sm:p-6 rounded-xl shadow-md mb-6">
+            <h3 className="text-base sm:text-lg font-bold text-[#101010] mb-4" style={{ fontFamily: 'Playfair Display, serif' }}>
+              Services Requested
+            </h3>
+            <div className="flex flex-wrap gap-2">
+              {Object.entries(project.services).map(([key, value]) =>
+                value && (
+                  <span
+                    key={key}
+                    className="px-3 py-1 bg-[#e6c35a]/20 text-[#101010] rounded-full text-xs font-semibold"
+                    style={{ fontFamily: 'Inter, sans-serif' }}
+                  >
+                    {key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
+                  </span>
+                )
+              )}
+            </div>
+          </div>
+        )}
+
+        {project.specialRequests && (project.specialRequests.notForSale || project.specialRequests.restrictedAreas) && (
+          <div className="bg-white p-4 sm:p-6 rounded-xl shadow-md mb-6">
+            <h3 className="text-base sm:text-lg font-bold text-[#101010] mb-4" style={{ fontFamily: 'Playfair Display, serif' }}>
               Special Requests
             </h3>
             <div className="space-y-4">
@@ -569,7 +678,7 @@ function ClientProjectDetailPage() {
                   <p className="text-xs font-semibold text-[#707072] mb-1" style={{ fontFamily: 'Inter, sans-serif' }}>
                     Items Not for Sale
                   </p>
-                  <p className="text-sm text-[#101010]" style={{ fontFamily: 'Inter, sans-serif' }}>
+                  <p className="text-xs sm:text-sm text-[#101010]" style={{ fontFamily: 'Inter, sans-serif' }}>
                     {project.specialRequests.notForSale}
                   </p>
                 </div>
@@ -579,7 +688,7 @@ function ClientProjectDetailPage() {
                   <p className="text-xs font-semibold text-[#707072] mb-1" style={{ fontFamily: 'Inter, sans-serif' }}>
                     Restricted Areas
                   </p>
-                  <p className="text-sm text-[#101010]" style={{ fontFamily: 'Inter, sans-serif' }}>
+                  <p className="text-xs sm:text-sm text-[#101010]" style={{ fontFamily: 'Inter, sans-serif' }}>
                     {project.specialRequests.restrictedAreas}
                   </p>
                 </div>
@@ -588,9 +697,9 @@ function ClientProjectDetailPage() {
           </div>
         )}
 
-        {(project.story.owner || project.story.inventory || project.story.property) && (
-          <div className="bg-white p-6 rounded-xl shadow-md mb-6">
-            <h3 className="text-lg font-bold text-[#101010] mb-4" style={{ fontFamily: 'Playfair Display, serif' }}>
+        {project.story && (project.story.owner || project.story.inventory || project.story.property) && (
+          <div className="bg-white p-4 sm:p-6 rounded-xl shadow-md mb-6">
+            <h3 className="text-base sm:text-lg font-bold text-[#101010] mb-4" style={{ fontFamily: 'Playfair Display, serif' }}>
               The Story
             </h3>
             <div className="space-y-4">
@@ -599,7 +708,7 @@ function ClientProjectDetailPage() {
                   <p className="text-xs font-semibold text-[#707072] mb-1" style={{ fontFamily: 'Inter, sans-serif' }}>
                     About the Owner
                   </p>
-                  <p className="text-sm text-[#101010]" style={{ fontFamily: 'Inter, sans-serif' }}>
+                  <p className="text-xs sm:text-sm text-[#101010]" style={{ fontFamily: 'Inter, sans-serif' }}>
                     {project.story.owner}
                   </p>
                 </div>
@@ -609,7 +718,7 @@ function ClientProjectDetailPage() {
                   <p className="text-xs font-semibold text-[#707072] mb-1" style={{ fontFamily: 'Inter, sans-serif' }}>
                     Inventory Overview
                   </p>
-                  <p className="text-sm text-[#101010]" style={{ fontFamily: 'Inter, sans-serif' }}>
+                  <p className="text-xs sm:text-sm text-[#101010]" style={{ fontFamily: 'Inter, sans-serif' }}>
                     {project.story.inventory}
                   </p>
                 </div>
@@ -619,7 +728,7 @@ function ClientProjectDetailPage() {
                   <p className="text-xs font-semibold text-[#707072] mb-1" style={{ fontFamily: 'Inter, sans-serif' }}>
                     Property Details
                   </p>
-                  <p className="text-sm text-[#101010]" style={{ fontFamily: 'Inter, sans-serif' }}>
+                  <p className="text-xs sm:text-sm text-[#101010]" style={{ fontFamily: 'Inter, sans-serif' }}>
                     {project.story.property}
                   </p>
                 </div>
@@ -629,22 +738,22 @@ function ClientProjectDetailPage() {
         )}
 
         {project.stageNotes && project.stageNotes.length > 0 && (
-          <div className="bg-white p-6 rounded-xl shadow-md mb-6">
-            <h3 className="text-lg font-bold text-[#101010] mb-4" style={{ fontFamily: 'Playfair Display, serif' }}>
-              Updates & Notes
+          <div className="bg-white p-4 sm:p-6 rounded-xl shadow-md mb-6">
+            <h3 className="text-base sm:text-lg font-bold text-[#101010] mb-4" style={{ fontFamily: 'Playfair Display, serif' }}>
+              Status History & Notes
             </h3>
             <div className="space-y-3">
-              {project.stageNotes.map((note, i) => (
-                <div key={i} className="p-3 bg-[#F8F5F0] rounded-lg">
-                  <div className="flex justify-between items-start mb-1">
+              {project.stageNotes.slice().reverse().map((note, i) => (
+                <div key={i} className="p-3 sm:p-4 bg-[#F8F5F0] rounded-lg border-l-4 border-[#e6c35a]">
+                  <div className="flex justify-between items-start mb-2">
                     <span className="text-xs font-semibold text-[#e6c35a]" style={{ fontFamily: 'Inter, sans-serif' }}>
                       {stages.find(s => s.key === note.stage)?.label || note.stage}
                     </span>
                     <span className="text-xs text-[#707072]" style={{ fontFamily: 'Inter, sans-serif' }}>
-                      {formatDate(note.at)}
+                      {formatDateTime(note.at)}
                     </span>
                   </div>
-                  <p className="text-sm text-[#101010]" style={{ fontFamily: 'Inter, sans-serif' }}>
+                  <p className="text-xs sm:text-sm text-[#101010]" style={{ fontFamily: 'Inter, sans-serif' }}>
                     {note.note}
                   </p>
                 </div>
@@ -653,22 +762,28 @@ function ClientProjectDetailPage() {
           </div>
         )}
 
-        <div className="bg-[#e6c35a]/10 p-6 rounded-xl border-2 border-[#e6c35a]/30">
-          <h3 className="text-lg font-bold text-[#101010] mb-2" style={{ fontFamily: 'Playfair Display, serif' }}>
+        <div className="bg-[#e6c35a]/10 p-4 sm:p-6 rounded-xl border-2 border-[#e6c35a]/30">
+          <h3 className="text-base sm:text-lg font-bold text-[#101010] mb-2" style={{ fontFamily: 'Playfair Display, serif' }}>
             Need Help?
           </h3>
           <p className="text-sm text-[#707072]" style={{ fontFamily: 'Inter, sans-serif' }}>
-            Have questions about your project? Contact us at <a href="mailto:admin@keptestate.com" className="text-[#1c449e] font-semibold hover:underline">admin@keptestate.com</a>
+            Have questions about your project? Contact us at <a href="mailto:admin@keptestate.com" className="text-[#1c449e] font-semibold hover:underline break-all">admin@keptestate.com</a>
           </p>
         </div>
       </div>
 
       {showUploadModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full p-6">
-            <h3 className="text-xl font-bold text-[#101010] mb-4" style={{ fontFamily: 'Playfair Display, serif' }}>
-              Upload Item Photos
+          <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full p-4 sm:p-6 max-h-[90vh] overflow-y-auto">
+            <h3 className="text-lg sm:text-xl font-bold text-[#101010] mb-4" style={{ fontFamily: 'Playfair Display, serif' }}>
+              Add New Item
             </h3>
+
+            <div className="mb-4 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+              <p className="text-sm text-yellow-800" style={{ fontFamily: 'Inter, sans-serif' }}>
+                💡 <strong>Tip:</strong> For best marketplace results, we recommend at least 4 clear photos per item showing different angles.
+              </p>
+            </div>
 
             {uploadError && (
               <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
@@ -683,7 +798,7 @@ function ClientProjectDetailPage() {
                 <div className="mb-4 flex justify-center">
                   <div className="w-16 h-16 border-4 border-[#F8F5F0] border-t-[#e6c35a] rounded-full animate-spin"></div>
                 </div>
-                <p className="text-lg font-semibold text-[#101010] mb-2" style={{ fontFamily: 'Inter, sans-serif' }}>
+                <p className="text-base sm:text-lg font-semibold text-[#101010] mb-2" style={{ fontFamily: 'Inter, sans-serif' }}>
                   Uploading photos...
                 </p>
                 <p className="text-sm text-[#707072]" style={{ fontFamily: 'Inter, sans-serif' }}>
@@ -694,19 +809,19 @@ function ClientProjectDetailPage() {
               <>
                 <div className="mb-6">
                   <label className="block text-sm font-semibold text-[#101010] mb-2" style={{ fontFamily: 'Inter, sans-serif' }}>
-                    Select Photos (Max 10 at a time)
+                    Select Photos for This Item
                   </label>
                   <input
                     type="file"
                     accept="image/*"
                     multiple
                     onChange={handleFileSelect}
-                    className="w-full px-4 py-3 border border-[#707072]/30 rounded-lg focus:outline-none focus:border-[#e6c35a] focus:ring-2 focus:ring-[#e6c35a]/20"
+                    className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-[#707072]/30 rounded-lg focus:outline-none focus:border-[#e6c35a] focus:ring-2 focus:ring-[#e6c35a]/20 text-sm"
                     style={{ fontFamily: 'Inter, sans-serif' }}
                   />
                   {selectedFiles.length > 0 && (
-                    <p className={`text-sm mt-2 ${selectedFiles.length === 10 ? 'text-[#e6c35a] font-semibold' : 'text-[#707072]'}`} style={{ fontFamily: 'Inter, sans-serif' }}>
-                      {selectedFiles.length} / 10 file(s) selected
+                    <p className="text-sm mt-2 text-[#707072]" style={{ fontFamily: 'Inter, sans-serif' }}>
+                      {selectedFiles.length} photo(s) selected
                     </p>
                   )}
                 </div>
@@ -716,21 +831,24 @@ function ClientProjectDetailPage() {
                     <p className="text-sm font-semibold text-[#101010] mb-2" style={{ fontFamily: 'Inter, sans-serif' }}>
                       Preview:
                     </p>
-                    <div className="grid grid-cols-3 gap-2">
-                      {Array.from(selectedFiles).slice(0, 6).map((file, i) => (
-                        <img 
-                          key={i}
-                          src={URL.createObjectURL(file)} 
-                          alt={`Preview ${i + 1}`}
-                          className="w-full h-24 object-cover rounded-lg"
-                        />
+                    <div className="grid grid-cols-2 gap-2">
+                      {Array.from(selectedFiles).slice(0, 4).map((file, i) => (
+                        <div key={i} className="relative">
+                          <img
+                            src={URL.createObjectURL(file)}
+                            alt={`Preview ${i + 1}`}
+                            className="w-full h-24 sm:h-32 object-cover rounded-lg border-2 border-gray-300"
+                          />
+                          {i === 3 && selectedFiles.length > 4 && (
+                            <div className="absolute inset-0 bg-black/60 rounded-lg flex items-center justify-center">
+                              <span className="text-white text-lg font-bold" style={{ fontFamily: 'Inter, sans-serif' }}>
+                                +{selectedFiles.length - 4}
+                              </span>
+                            </div>
+                          )}
+                        </div>
                       ))}
                     </div>
-                    {selectedFiles.length > 6 && (
-                      <p className="text-xs text-[#707072] mt-2" style={{ fontFamily: 'Inter, sans-serif' }}>
-                        +{selectedFiles.length - 6} more
-                      </p>
-                    )}
                   </div>
                 )}
 
@@ -741,7 +859,7 @@ function ClientProjectDetailPage() {
                       setSelectedFiles([])
                       setUploadError('')
                     }}
-                    className="w-full sm:flex-1 px-6 py-3 bg-white border-2 border-[#707072] text-[#101010] rounded-lg font-semibold hover:bg-gray-50 transition-all"
+                    className="w-full sm:flex-1 px-4 sm:px-6 py-2 sm:py-3 bg-white border-2 border-[#707072] text-[#101010] rounded-lg font-semibold hover:bg-gray-50 transition-all text-sm sm:text-base"
                     style={{ fontFamily: 'Inter, sans-serif' }}
                   >
                     Cancel
@@ -749,14 +867,46 @@ function ClientProjectDetailPage() {
                   <button
                     onClick={handleUpload}
                     disabled={selectedFiles.length === 0}
-                    className="w-full sm:flex-1 px-6 py-3 bg-[#e6c35a] text-black rounded-lg font-bold hover:bg-[#edd88c] transition-all shadow-md disabled:opacity-50"
+                    className="w-full sm:flex-1 px-4 sm:px-6 py-2 sm:py-3 bg-[#e6c35a] text-black rounded-lg font-bold hover:bg-[#edd88c] transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
                     style={{ fontFamily: 'Inter, sans-serif' }}
                   >
-                    Upload
+                    Upload Item
                   </button>
                 </div>
               </>
             )}
+          </div>
+        </div>
+      )}
+
+      {showSuccessModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 sm:p-8">
+            <div className="text-center">
+              <div className="mb-4 flex justify-center">
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+                  <svg className="w-10 h-10 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                </div>
+              </div>
+              <h3 className="text-xl sm:text-2xl font-bold text-[#101010] mb-3" style={{ fontFamily: 'Playfair Display, serif' }}>
+                Payment Successful!
+              </h3>
+              <p className="text-base text-[#707072] mb-2" style={{ fontFamily: 'Inter, sans-serif' }}>
+                Your deposit of <span className="font-bold text-[#101010]">{formatCurrency(project.depositAmount)}</span> has been processed successfully.
+              </p>
+              <p className="text-sm text-[#707072] mb-6" style={{ fontFamily: 'Inter, sans-serif' }}>
+                Your project is now active and our team will begin work shortly.
+              </p>
+              <button
+                onClick={() => setShowSuccessModal(false)}
+                className="w-full px-6 py-3 bg-[#e6c35a] text-black rounded-lg font-bold hover:bg-[#edd88c] transition-all shadow-md"
+                style={{ fontFamily: 'Inter, sans-serif' }}
+              >
+                Continue
+              </button>
+            </div>
           </div>
         </div>
       )}

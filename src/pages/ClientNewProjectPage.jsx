@@ -33,6 +33,24 @@ function ClientNewProjectPage() {
     navigate('/')
   }
 
+  const handleServiceChange = (serviceKey, checked) => {
+    if (serviceKey === 'allServices') {
+      setFormData({
+        ...formData,
+        liquidation: checked,
+        donationClearout: checked,
+        cleaning: checked,
+        homeSale: checked,
+        homeRepair: checked
+      })
+    } else {
+      setFormData({...formData, [serviceKey]: checked})
+    }
+  }
+
+  const allServicesChecked = formData.liquidation && formData.donationClearout && 
+    formData.cleaning && formData.homeSale && formData.homeRepair
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
@@ -213,6 +231,18 @@ function ClientNewProjectPage() {
               Services Desired
             </h3>
             <div className="space-y-3">
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  disabled={isLoading}
+                  checked={allServicesChecked}
+                  onChange={(e) => handleServiceChange('allServices', e.target.checked)}
+                  className="w-5 h-5 text-[#e6c35a] border-[#707072]/30 rounded focus:ring-[#e6c35a]"
+                />
+                <span className="text-sm font-semibold text-[#101010]" style={{ fontFamily: 'Inter, sans-serif' }}>
+                  All of the above
+                </span>
+              </label>
               {[
                 { key: 'liquidation', label: 'Liquidation' },
                 { key: 'donationClearout', label: 'Donation/Clearout' },
@@ -225,7 +255,7 @@ function ClientNewProjectPage() {
                     type="checkbox"
                     disabled={isLoading}
                     checked={formData[service.key]}
-                    onChange={(e) => setFormData({...formData, [service.key]: e.target.checked})}
+                    onChange={(e) => handleServiceChange(service.key, e.target.checked)}
                     className="w-5 h-5 text-[#e6c35a] border-[#707072]/30 rounded focus:ring-[#e6c35a]"
                   />
                   <span className="text-sm text-[#101010]" style={{ fontFamily: 'Inter, sans-serif' }}>

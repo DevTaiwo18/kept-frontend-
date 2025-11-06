@@ -43,7 +43,7 @@ function OrderDetailPage() {
         }
 
         fetchOrder()
-    }, [id])
+    }, [id]) 
 
     const handleSaveDelivery = async (e) => {
         e.preventDefault()
@@ -113,6 +113,26 @@ function OrderDetailPage() {
             default:
                 return 'bg-gray-100 text-gray-800 border-gray-200'
         }
+    }
+
+    const getDeliveryTypeBadge = (type) => {
+        if (type === 'shipping') {
+            return (
+                <span className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full font-semibold">
+                    <span>🚚</span>
+                    <span>Shipping</span>
+                </span>
+            )
+        }
+        if (type === 'pickup') {
+            return (
+                <span className="inline-flex items-center gap-1 px-3 py-1 bg-purple-100 text-purple-800 text-sm rounded-full font-semibold">
+                    <span>📦</span>
+                    <span>Pickup</span>
+                </span>
+            )
+        }
+        return null
     }
 
     if (loading) {
@@ -384,7 +404,7 @@ function OrderDetailPage() {
                     <div className="p-6 sm:p-8 border-b border-[#707072]/20">
                         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
                             <div>
-                                <div className="flex items-center gap-3 mb-2">
+                                <div className="flex flex-wrap items-center gap-2 mb-2">
                                     <h1
                                         className="text-2xl sm:text-3xl font-bold text-[#101010]"
                                         style={{ fontFamily: 'Playfair Display, serif' }}
@@ -397,6 +417,7 @@ function OrderDetailPage() {
                                     >
                                         {order.paymentStatus.toUpperCase()}
                                     </span>
+                                    {order.deliveryDetails?.type && getDeliveryTypeBadge(order.deliveryDetails.type)}
                                 </div>
                                 <p
                                     className="text-sm text-[#707072]"
@@ -472,6 +493,35 @@ function OrderDetailPage() {
                                 </div>
                             ))}
                         </div>
+
+                        {order.shippingDetails?.trackingNumber && (
+                            <div className="mb-8">
+                                <h2
+                                    className="text-xl font-bold text-[#101010] mb-4"
+                                    style={{ fontFamily: 'Playfair Display, serif' }}
+                                >
+                                    Shipping Information
+                                </h2>
+                                <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-6">
+                                    <div className="flex items-center gap-3 mb-3">
+                                        <span className="text-2xl">📦</span>
+                                        <div>
+                                            <p className="text-sm font-semibold text-[#101010]" style={{ fontFamily: 'Inter, sans-serif' }}>
+                                                Tracking Number
+                                            </p>
+                                            <p className="text-lg font-mono text-blue-800" style={{ fontFamily: 'Inter, sans-serif' }}>
+                                                {order.shippingDetails.trackingNumber}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    {order.fulfillmentStatus && (
+                                        <p className="text-sm text-[#707072] capitalize" style={{ fontFamily: 'Inter, sans-serif' }}>
+                                            Status: <span className="font-semibold">{order.fulfillmentStatus}</span>
+                                        </p>
+                                    )}
+                                </div>
+                            </div>
+                        )}
 
                         {order.paymentStatus === 'paid' && (
                             <>

@@ -29,6 +29,9 @@ import CartPage from './pages/CartPage'
 import OrderSuccessPage from './pages/OrderSuccessPage'
 import OrdersPage from './pages/OrdersPage'
 import OrderDetailPage from './pages/OrderDetailPage'
+import CheckoutPage from './pages/CheckoutPage'
+import AdminOrdersPage from './pages/AdminOrdersPage'
+import EmailTemplatesPage from './pages/EmailTemplatesPage'
 
 function App() {
   return (
@@ -95,10 +98,28 @@ function App() {
         />
 
         <Route
+          path="/admin/email-templates"
+          element={
+            <ProtectedRoute allowedRoles={['agent']}>
+              <EmailTemplatesPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
           path="/agent/job/:id"
           element={
             <ProtectedRoute allowedRoles={['agent']}>
               <AgentJobDetailPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/admin/orders"
+          element={
+            <ProtectedRoute allowedRoles={['agent']}>
+              <AdminOrdersPage />
             </ProtectedRoute>
           }
         />
@@ -187,6 +208,16 @@ function App() {
             <Header />
             <main className="flex-grow">
               <CartPage />
+            </main>
+            <Footer />
+          </div>
+        } />
+
+        <Route path="/checkout" element={
+          <div className="min-h-screen bg-[#F8F5F0] flex flex-col">
+            <Header />
+            <main className="flex-grow">
+              <CheckoutPage />
             </main>
             <Footer />
           </div>

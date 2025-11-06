@@ -22,7 +22,7 @@ export const uploadItemPhotos = async (itemId, files) => {
 
   const formData = new FormData()
 
-  files.forEach((file, index) => {
+  files.forEach((file) => {
     if (file instanceof File) {
       formData.append('photos', file)
     } else {
@@ -32,30 +32,24 @@ export const uploadItemPhotos = async (itemId, files) => {
 
   const token = localStorage.getItem('kh_token')
 
-  try {
-    const response = await fetch(`http://localhost:4000/api/items/${itemId}/photos`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`
-      },
-      body: formData
-    })
+  const response = await fetch(`http://localhost:4000/api/items/${itemId}/photos`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`
+    },
+    body: formData
+  })
 
-    const data = await response.json()
+  const data = await response.json()
 
-    if (!response.ok) {
-      console.error('Upload failed:', data)
-      throw {
-        status: response.status,
-        message: data.message || 'Failed to upload photos'
-      }
+  if (!response.ok) {
+    throw {
+      status: response.status,
+      message: data.message || 'Failed to upload photos'
     }
-
-    return data
-  } catch (error) {
-    console.error('❌ Upload error:', error)
-    throw error
   }
+
+  return data
 }
 
 export const analyzeItem = async (itemId) => {

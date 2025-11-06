@@ -7,6 +7,20 @@ export const createClientJob = async (jobData) => {
   })
 }
 
+export const requestClientJobDeposit = async (jobId, depositRequestData) => {
+  return apiCall(`/client-jobs/${jobId}/request-deposit`, {
+    method: 'POST',
+    body: JSON.stringify(depositRequestData)
+  })
+}
+
+export const updateClientJobDeposit = async (jobId, depositData) => {
+  return apiCall(`/client-jobs/${jobId}/deposit`, {
+    method: 'PUT',
+    body: JSON.stringify(depositData)
+  })
+}
+
 export const getClientJobs = async () => {
   return apiCall('/client-jobs')
 }
@@ -15,18 +29,18 @@ export const getClientJobById = async (jobId) => {
   return apiCall(`/client-jobs/${jobId}`)
 }
 
-export const updateJobStatus = async (jobId, stage, note) => {
-  await apiCall(`/client-jobs/${jobId}/status`, {
+export const updateClientJobProgress = async (jobId, stage, note) => {
+  return apiCall(`/client-jobs/${jobId}/progress`, {
     method: 'PATCH',
-    body: JSON.stringify({ progressStage: stage })
-  })
-
-  if (note && note.trim()) {
-    await apiCall(`/client-jobs/${jobId}/notes`, {
-      method: 'POST',
-      body: JSON.stringify({ stage, note })
+    body: JSON.stringify({
+      progressStage: stage,
+      note: note || ''
     })
-  }
-  
-  return { success: true }
+  })
+}
+
+export const payClientJobDeposit = async (jobId) => {
+  return apiCall(`/client-jobs/${jobId}/deposit/checkout`, {
+    method: 'POST'
+  })
 }

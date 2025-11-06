@@ -2,12 +2,14 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import { getAuth, clearAuth, onAuthUpdate } from '../utils/auth'
 import { getCart, getCachedCart, onCartUpdate } from '../utils/cartApi'
+import { getMarketplaceItems } from '../utils/marketplaceApi'
 import logo from '../assets/Kept House _transparent logo .png'
 
 function Header() {
   const [auth, setAuth] = useState(getAuth())
   const navigate = useNavigate()
   const [cartCount, setCartCount] = useState(0)
+  const [hasItems, setHasItems] = useState(true)
 
   const fetchCartCount = async () => {
     if (!auth) {
@@ -31,8 +33,19 @@ function Header() {
     }
   }
 
+  const checkMarketplaceItems = async () => {
+    try {
+      const response = await getMarketplaceItems({ limit: 1 })
+      const items = response.items || []
+      setHasItems(items.length > 0)
+    } catch (error) {
+      setHasItems(false)
+    }
+  }
+
   useEffect(() => {
     fetchCartCount()
+    checkMarketplaceItems()
 
     const unsubscribeCart = onCartUpdate(() => {
       fetchCartCount()
@@ -76,13 +89,15 @@ function Header() {
             >
               Home
             </Link>
-            <Link 
-              to="/browse"
-              className="px-4 py-2 rounded-lg hover:bg-[#edd88c] hover:text-black transition-all text-sm font-medium"
-              style={{ fontFamily: 'Inter, sans-serif' }}
-            >
-              Browse Items
-            </Link>
+            {hasItems && (
+              <Link 
+                to="/browse"
+                className="px-4 py-2 rounded-lg hover:bg-[#edd88c] hover:text-black transition-all text-sm font-medium"
+                style={{ fontFamily: 'Inter, sans-serif' }}
+              >
+                Browse Items
+              </Link>
+            )}
             <Link 
               to="/about"
               className="px-4 py-2 rounded-lg hover:bg-[#edd88c] hover:text-black transition-all text-sm font-medium"
@@ -152,7 +167,9 @@ function Header() {
 
         <div className="md:hidden flex justify-center gap-4 pb-3 border-t border-[#707072]/20 pt-3">
           <Link to="/" className="text-xs hover:text-[#e6c35a]" style={{ fontFamily: 'Inter, sans-serif' }}>Home</Link>
-          <Link to="/browse" className="text-xs hover:text-[#e6c35a]" style={{ fontFamily: 'Inter, sans-serif' }}>Browse</Link>
+          {hasItems && (
+            <Link to="/browse" className="text-xs hover:text-[#e6c35a]" style={{ fontFamily: 'Inter, sans-serif' }}>Browse</Link>
+          )}
           <Link to="/about" className="text-xs hover:text-[#e6c35a]" style={{ fontFamily: 'Inter, sans-serif' }}>About</Link>
           <Link to="/contact" className="text-xs hover:text-[#e6c35a]" style={{ fontFamily: 'Inter, sans-serif' }}>Contact</Link>
           <a href="tel:+15136094731" className="text-xs text-[#e6c35a]" style={{ fontFamily: 'Inter, sans-serif' }}>📞 Call</a>

@@ -85,19 +85,29 @@ function AgentDashboardPage() {
     closing: 'bg-gray-100 text-gray-800'
   }
 
+  const awaitingDepositJobs = jobs.filter(j => j.status === 'awaiting_deposit')
+
   return (
     <div className="min-h-screen bg-[#F8F5F0]">
       <header className="bg-[#101010] text-[#F8F5F0] shadow-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex justify-between items-center">
-            <img src={logo} alt="Kept House" className="h-12 w-auto" />
-            <div className="flex items-center gap-4">
-              <span className="text-sm text-[#e6c35a]" style={{ fontFamily: 'Inter, sans-serif' }}>
+            <img src={logo} alt="Kept House" className="h-10 sm:h-12 w-auto" />
+            <div className="flex items-center gap-2 sm:gap-4">
+              <button
+                onClick={() => navigate('/admin/orders')}
+                className="px-3 py-2 sm:px-4 sm:py-2 bg-[#e6c35a] text-black rounded-lg text-xs sm:text-sm font-semibold hover:bg-[#edd88c] transition-all whitespace-nowrap"
+                style={{ fontFamily: 'Inter, sans-serif' }}
+              >
+                <span className="hidden sm:inline">📦 Orders</span>
+                <span className="sm:hidden">📦</span>
+              </button>
+              <span className="text-xs sm:text-sm text-[#e6c35a] truncate max-w-[80px] sm:max-w-none" style={{ fontFamily: 'Inter, sans-serif' }}>
                 {auth?.user?.name} (Agent)
               </span>
               <button 
                 onClick={handleLogout}
-                className="px-4 py-2 bg-[#707072] text-[#F8F5F0] rounded-lg text-sm font-medium hover:bg-gray-600 transition-all"
+                className="px-3 py-2 sm:px-4 sm:py-2 bg-[#707072] text-[#F8F5F0] rounded-lg text-xs sm:text-sm font-medium hover:bg-gray-600 transition-all"
                 style={{ fontFamily: 'Inter, sans-serif' }}
               >
                 Logout
@@ -109,43 +119,62 @@ function AgentDashboardPage() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-[#101010] mb-2" style={{ fontFamily: 'Playfair Display, serif' }}>
+          <h1 className="text-2xl sm:text-3xl font-bold text-[#101010] mb-2" style={{ fontFamily: 'Playfair Display, serif' }}>
             Agent Dashboard
           </h1>
-          <p className="text-[#707072]" style={{ fontFamily: 'Inter, sans-serif' }}>
+          <p className="text-sm sm:text-base text-[#707072]" style={{ fontFamily: 'Inter, sans-serif' }}>
             Manage all client projects and track progress
           </p>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          <div className="bg-white p-6 rounded-xl shadow-md">
-            <p className="text-sm text-[#707072] mb-1" style={{ fontFamily: 'Inter, sans-serif' }}>Total Projects</p>
-            <p className="text-3xl font-bold text-[#101010]" style={{ fontFamily: 'Playfair Display, serif' }}>
+        {awaitingDepositJobs.length > 0 && (
+          <div className="mb-6 p-4 bg-yellow-50 border-l-4 border-yellow-500 rounded-lg">
+            <div className="flex items-start gap-3">
+              <svg className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-600 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+              </svg>
+              <div>
+                <h3 className="text-xs sm:text-sm font-bold text-yellow-900 mb-1" style={{ fontFamily: 'Inter, sans-serif' }}>
+                  {awaitingDepositJobs.length} Project{awaitingDepositJobs.length > 1 ? 's' : ''} Awaiting Deposit
+                </h3>
+                <p className="text-xs sm:text-sm text-yellow-800" style={{ fontFamily: 'Inter, sans-serif' }}>
+                  {awaitingDepositJobs.filter(j => !j.serviceFee).length > 0 && 
+                    `${awaitingDepositJobs.filter(j => !j.serviceFee).length} need deposit request. `}
+                  {awaitingDepositJobs.filter(j => j.serviceFee && !j.depositPaidAt).length > 0 && 
+                    `${awaitingDepositJobs.filter(j => j.serviceFee && !j.depositPaidAt).length} awaiting client payment.`}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-8">
+          <div className="bg-white p-4 sm:p-6 rounded-xl shadow-md">
+            <p className="text-xs sm:text-sm text-[#707072] mb-1" style={{ fontFamily: 'Inter, sans-serif' }}>Total Projects</p>
+            <p className="text-2xl sm:text-3xl font-bold text-[#101010]" style={{ fontFamily: 'Playfair Display, serif' }}>
               {jobs.length}
             </p>
           </div>
-          <div className="bg-white p-6 rounded-xl shadow-md">
-            <p className="text-sm text-[#707072] mb-1" style={{ fontFamily: 'Inter, sans-serif' }}>Active Sales</p>
-            <p className="text-3xl font-bold text-[#101010]" style={{ fontFamily: 'Playfair Display, serif' }}>
+          <div className="bg-white p-4 sm:p-6 rounded-xl shadow-md">
+            <p className="text-xs sm:text-sm text-[#707072] mb-1" style={{ fontFamily: 'Inter, sans-serif' }}>Active Sales</p>
+            <p className="text-2xl sm:text-3xl font-bold text-[#101010]" style={{ fontFamily: 'Playfair Display, serif' }}>
               {jobs.filter(j => j.stage === 'online_sale' || j.stage === 'estate_sale').length}
             </p>
           </div>
-          <div className="bg-white p-6 rounded-xl shadow-md">
-            <p className="text-sm text-[#707072] mb-1" style={{ fontFamily: 'Inter, sans-serif' }}>Pending Walkthrough</p>
-            <p className="text-3xl font-bold text-[#101010]" style={{ fontFamily: 'Playfair Display, serif' }}>
-              {jobs.filter(j => j.stage === 'walkthrough').length}
+          <div className="bg-white p-4 sm:p-6 rounded-xl shadow-md">
+            <p className="text-xs sm:text-sm text-[#707072] mb-1" style={{ fontFamily: 'Inter, sans-serif' }}>Awaiting Deposit</p>
+            <p className="text-2xl sm:text-3xl font-bold text-[#101010]" style={{ fontFamily: 'Playfair Display, serif' }}>
+              {awaitingDepositJobs.length}
             </p>
           </div>
-          <div className="bg-white p-6 rounded-xl shadow-md">
-            <p className="text-sm text-[#707072] mb-1" style={{ fontFamily: 'Inter, sans-serif' }}>Total Revenue</p>
-            <p className="text-3xl font-bold text-[#101010]" style={{ fontFamily: 'Playfair Display, serif' }}>
+          <div className="bg-white p-4 sm:p-6 rounded-xl shadow-md">
+            <p className="text-xs sm:text-sm text-[#707072] mb-1" style={{ fontFamily: 'Inter, sans-serif' }}>Total Revenue</p>
+            <p className="text-2xl sm:text-3xl font-bold text-[#101010]" style={{ fontFamily: 'Playfair Display, serif' }}>
               {formatCurrency(jobs.reduce((sum, j) => sum + (j.finance?.gross || 0), 0))}
             </p>
           </div>
         </div>
 
-        {/* Search Bar */}
         <div className="bg-white p-4 rounded-xl shadow-md mb-6">
           <div className="relative">
             <input
@@ -153,7 +182,7 @@ function AgentDashboardPage() {
               placeholder="Search client name or property address..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full px-4 py-3 pl-10 border border-[#707072]/30 rounded-lg focus:outline-none focus:border-[#e6c35a] focus:ring-2 focus:ring-[#e6c35a]/20"
+              className="w-full px-4 py-3 pl-10 border border-[#707072]/30 rounded-lg focus:outline-none focus:border-[#e6c35a] focus:ring-2 focus:ring-[#e6c35a]/20 text-sm sm:text-base"
               style={{ fontFamily: 'Inter, sans-serif' }}
             />
             <svg 
@@ -177,12 +206,11 @@ function AgentDashboardPage() {
           </div>
         </div>
 
-        {/* Filter Tabs */}
-        <div className="bg-white p-4 rounded-xl shadow-md mb-6">
-          <div className="flex flex-wrap gap-2">
+        <div className="bg-white p-3 sm:p-4 rounded-xl shadow-md mb-6 overflow-x-auto">
+          <div className="flex flex-nowrap gap-2 min-w-max sm:min-w-0">
             <button
               onClick={() => setFilter('all')}
-              className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
+              className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all whitespace-nowrap ${
                 filter === 'all' 
                   ? 'bg-[#e6c35a] text-black' 
                   : 'bg-gray-100 text-[#707072] hover:bg-gray-200'
@@ -197,7 +225,7 @@ function AgentDashboardPage() {
                 <button
                   key={stage.key}
                   onClick={() => setFilter(stage.key)}
-                  className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
+                  className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all whitespace-nowrap ${
                     filter === stage.key 
                       ? 'bg-[#e6c35a] text-black' 
                       : 'bg-gray-100 text-[#707072] hover:bg-gray-200'
@@ -211,23 +239,21 @@ function AgentDashboardPage() {
           </div>
         </div>
 
-        {/* Jobs Table */}
         {isLoading ? (
           <div className="text-center py-12">
-            <p className="text-[#707072]" style={{ fontFamily: 'Inter, sans-serif' }}>Loading jobs...</p>
+            <p className="text-sm sm:text-base text-[#707072]" style={{ fontFamily: 'Inter, sans-serif' }}>Loading jobs...</p>
           </div>
         ) : filteredJobs.length === 0 ? (
-          <div className="bg-white p-12 rounded-xl shadow-md text-center">
-            <h3 className="text-2xl font-bold text-[#101010] mb-4" style={{ fontFamily: 'Playfair Display, serif' }}>
+          <div className="bg-white p-8 sm:p-12 rounded-xl shadow-md text-center">
+            <h3 className="text-xl sm:text-2xl font-bold text-[#101010] mb-4" style={{ fontFamily: 'Playfair Display, serif' }}>
               No Jobs Found
             </h3>
-            <p className="text-[#707072]" style={{ fontFamily: 'Inter, sans-serif' }}>
+            <p className="text-sm sm:text-base text-[#707072]" style={{ fontFamily: 'Inter, sans-serif' }}>
               {filter === 'all' ? 'No projects available yet.' : `No projects in ${getStageLabel(filter)} stage.`}
             </p>
           </div>
         ) : (
           <div className="bg-white rounded-xl shadow-md overflow-hidden">
-            {/* Desktop Table View */}
             <div className="hidden lg:block overflow-x-auto">
               <table className="w-full">
                 <thead className="bg-[#101010] text-[#F8F5F0]">
@@ -240,6 +266,9 @@ function AgentDashboardPage() {
                     </th>
                     <th className="px-6 py-4 text-left text-sm font-semibold" style={{ fontFamily: 'Inter, sans-serif' }}>
                       Stage
+                    </th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold" style={{ fontFamily: 'Inter, sans-serif' }}>
+                      Status
                     </th>
                     <th className="px-6 py-4 text-left text-sm font-semibold" style={{ fontFamily: 'Inter, sans-serif' }}>
                       Revenue
@@ -279,6 +308,23 @@ function AgentDashboardPage() {
                         </span>
                       </td>
                       <td className="px-6 py-4">
+                        {job.status === 'awaiting_deposit' ? (
+                          <span className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-semibold inline-flex items-center gap-1 whitespace-nowrap" style={{ fontFamily: 'Inter, sans-serif' }}>
+                            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+                            </svg>
+                            {!job.serviceFee ? 'Needs Deposit' : 'Awaiting Payment'}
+                          </span>
+                        ) : (
+                          <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-semibold inline-flex items-center gap-1" style={{ fontFamily: 'Inter, sans-serif' }}>
+                            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                            </svg>
+                            Active
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4">
                         <p className="text-sm font-semibold text-[#101010]" style={{ fontFamily: 'Inter, sans-serif' }}>
                           {formatCurrency(job.finance?.gross)}
                         </p>
@@ -303,25 +349,35 @@ function AgentDashboardPage() {
               </table>
             </div>
 
-            {/* Mobile Card View */}
             <div className="lg:hidden divide-y divide-gray-200">
               {filteredJobs.map((job) => (
                 <div key={job._id} className="p-4 hover:bg-[#F8F5F0] transition-colors">
                   <div className="flex justify-between items-start mb-3">
-                    <div>
-                      <p className="font-semibold text-[#101010] mb-1" style={{ fontFamily: 'Inter, sans-serif' }}>
+                    <div className="flex-1">
+                      <p className="text-sm sm:text-base font-semibold text-[#101010] mb-1" style={{ fontFamily: 'Inter, sans-serif' }}>
                         {job.contractSignor}
                       </p>
-                      <p className="text-sm text-[#707072]" style={{ fontFamily: 'Inter, sans-serif' }}>
+                      <p className="text-xs sm:text-sm text-[#707072]" style={{ fontFamily: 'Inter, sans-serif' }}>
                         {job.propertyAddress}
                       </p>
                     </div>
-                    <span 
-                      className={`px-3 py-1 rounded-full text-xs font-semibold ${stageColors[job.stage] || 'bg-gray-100 text-gray-800'}`}
-                      style={{ fontFamily: 'Inter, sans-serif' }}
-                    >
-                      {getStageLabel(job.stage)}
-                    </span>
+                    <div className="flex flex-col gap-2 items-end">
+                      <span 
+                        className={`px-2 sm:px-3 py-1 rounded-full text-xs font-semibold ${stageColors[job.stage] || 'bg-gray-100 text-gray-800'}`}
+                        style={{ fontFamily: 'Inter, sans-serif' }}
+                      >
+                        {getStageLabel(job.stage)}
+                      </span>
+                      {job.status === 'awaiting_deposit' ? (
+                        <span className="px-2 sm:px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-semibold whitespace-nowrap" style={{ fontFamily: 'Inter, sans-serif' }}>
+                          {!job.serviceFee ? 'Needs Deposit' : 'Awaiting Payment'}
+                        </span>
+                      ) : (
+                        <span className="px-2 sm:px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-semibold" style={{ fontFamily: 'Inter, sans-serif' }}>
+                          Active
+                        </span>
+                      )}
+                    </div>
                   </div>
                   <div className="flex justify-between items-center mb-3">
                     <div>
@@ -332,7 +388,7 @@ function AgentDashboardPage() {
                     </div>
                     <div className="text-right">
                       <p className="text-xs text-[#707072]" style={{ fontFamily: 'Inter, sans-serif' }}>Due Date</p>
-                      <p className="text-sm text-[#101010]" style={{ fontFamily: 'Inter, sans-serif' }}>
+                      <p className="text-xs sm:text-sm text-[#101010]" style={{ fontFamily: 'Inter, sans-serif' }}>
                         {formatDate(job.desiredCompletionDate)}
                       </p>
                     </div>

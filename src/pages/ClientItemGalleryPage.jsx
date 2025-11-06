@@ -43,7 +43,7 @@ function ClientItemGalleryPage() {
 
   const handleFileSelect = (e) => {
     const files = Array.from(e.target.files)
-    
+
     if (files.length > 10) {
       setUploadError('Maximum 10 photos can be uploaded at a time')
       setSelectedFiles(files.slice(0, 10))
@@ -79,6 +79,11 @@ function ClientItemGalleryPage() {
     }
   }
 
+  const getPhotosForGroup = (group) => {
+    if (!item || !item.photos) return []
+    return item.photos.slice(group.startIndex, group.endIndex + 1)
+  }
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-[#F8F5F0] flex items-center justify-center">
@@ -101,7 +106,7 @@ function ClientItemGalleryPage() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <div className="flex justify-between items-center">
               <img src={logo} alt="Kept House" className="h-12 w-auto" />
-              <button 
+              <button
                 onClick={handleLogout}
                 className="px-4 py-2 bg-[#707072] text-[#F8F5F0] rounded-lg text-sm font-medium hover:bg-gray-600 transition-all"
                 style={{ fontFamily: 'Inter, sans-serif' }}
@@ -139,7 +144,7 @@ function ClientItemGalleryPage() {
               <span className="text-sm text-[#e6c35a]" style={{ fontFamily: 'Inter, sans-serif' }}>
                 {auth?.user?.name}
               </span>
-              <button 
+              <button
                 onClick={handleLogout}
                 className="px-4 py-2 bg-[#707072] text-[#F8F5F0] rounded-lg text-sm font-medium hover:bg-gray-600 transition-all"
                 style={{ fontFamily: 'Inter, sans-serif' }}
@@ -167,21 +172,20 @@ function ClientItemGalleryPage() {
             </h1>
             <div className="flex items-center gap-3">
               <p className="text-[#707072]" style={{ fontFamily: 'Inter, sans-serif' }}>
-                {item.photos?.length || 0} photo(s)
+                {item.photoGroups?.length || 0} item(s) • {item.photos?.length || 0} photo(s)
               </p>
-              <span 
-                className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                  item.status === 'approved' ? 'bg-green-100 text-green-800' :
-                  item.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                  item.status === 'needs_review' ? 'bg-orange-100 text-orange-800' :
-                  'bg-blue-100 text-blue-800'
-                }`}
+              <span
+                className={`px-3 py-1 rounded-full text-xs font-semibold ${item.status === 'approved' ? 'bg-green-100 text-green-800' :
+                    item.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                      item.status === 'needs_review' ? 'bg-orange-100 text-orange-800' :
+                        'bg-blue-100 text-blue-800'
+                  }`}
                 style={{ fontFamily: 'Inter, sans-serif' }}
               >
-                {item.status === 'draft' ? 'Awaiting Review' : 
-                 item.status === 'needs_review' ? 'Needs Review' :
-                 item.status === 'approved' ? 'Approved' :
-                 item.status}
+                {item.status === 'draft' ? 'Awaiting Review' :
+                  item.status === 'needs_review' ? 'Needs Review' :
+                    item.status === 'approved' ? 'Approved' :
+                      item.status}
               </span>
             </div>
           </div>
@@ -191,7 +195,7 @@ function ClientItemGalleryPage() {
               className="w-full sm:w-auto px-6 py-3 bg-[#e6c35a] text-black rounded-lg font-bold hover:bg-[#edd88c] transition-all shadow-md"
               style={{ fontFamily: 'Inter, sans-serif' }}
             >
-              + Upload More Photos
+              + Add New Item
             </button>
           )}
         </div>
@@ -199,7 +203,7 @@ function ClientItemGalleryPage() {
         {item.status === 'draft' && (
           <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
             <p className="text-sm text-blue-800" style={{ fontFamily: 'Inter, sans-serif' }}>
-              ✓ <strong>Photos uploaded!</strong> Our team will review and list these items soon. You can continue adding more photos until your agent approves.
+              ✓ <strong>Photos uploaded!</strong> Our team will review and list these items soon. You can continue adding more items until your agent approves.
             </p>
           </div>
         )}
@@ -210,7 +214,7 @@ function ClientItemGalleryPage() {
               📝 Additional review needed
             </p>
             <p className="text-sm text-orange-800" style={{ fontFamily: 'Inter, sans-serif' }}>
-              Your agent has reopened this item for updates. You can upload additional photos or make changes as needed.
+              Your agent has reopened this item for updates. You can upload additional items or make changes as needed.
             </p>
           </div>
         )}
@@ -231,56 +235,87 @@ function ClientItemGalleryPage() {
           </div>
         )}
 
-        {item.photos && item.photos.length > 0 ? (
-          <div>
-            {isApproved && item.approvedItems && item.approvedItems.length > 0 ? (
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {item.approvedItems.map((approvedItem, idx) => (
-                  <div key={idx} className="relative group">
-                    <img
-                      src={item.photos[approvedItem.photoIndex]}
-                      alt={approvedItem.title || `Item ${idx + 1}`}
-                      className="w-full h-64 object-cover rounded-lg border-2 border-gray-200 hover:border-[#e6c35a] transition-all cursor-pointer"
-                      onClick={() => window.open(item.photos[approvedItem.photoIndex], '_blank')}
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-200 rounded-lg p-3 flex flex-col justify-end">
-                      <p className="text-white text-sm font-bold line-clamp-2 mb-1" style={{ fontFamily: 'Inter, sans-serif' }}>
-                        {approvedItem.title || 'Untitled'}
+        {item.photoGroups && item.photoGroups.length > 0 ? (
+          <div className="space-y-8">
+            {item.photoGroups.map((group, groupIdx) => {
+              const groupPhotos = getPhotosForGroup(group)
+              const approvedItem = item.approvedItems?.find(ai => ai.itemNumber === group.itemNumber)
+              const isSold = approvedItem && item.soldPhotoIndices?.some(idx => 
+                idx >= group.startIndex && idx <= group.endIndex
+              )
+
+              return (
+                <div key={groupIdx} className="bg-white p-6 rounded-xl shadow-md">
+                  <div className="flex justify-between items-center mb-4">
+                    <div>
+                      <h2 className="text-xl font-bold text-[#101010]" style={{ fontFamily: 'Playfair Display, serif' }}>
+                        {group.title}
+                      </h2>
+                      <p className="text-sm text-[#707072]" style={{ fontFamily: 'Inter, sans-serif' }}>
+                        {group.photoCount} photo(s)
                       </p>
+                    </div>
+                    {isSold && (
+                      <span className="px-4 py-2 bg-red-600 text-white rounded-lg font-bold text-sm" style={{ fontFamily: 'Inter, sans-serif' }}>
+                        SOLD ✓
+                      </span>
+                    )}
+                    {approvedItem && !isSold && (
+                      <span className="px-4 py-2 bg-green-100 text-green-800 rounded-lg font-bold text-sm" style={{ fontFamily: 'Inter, sans-serif' }}>
+                        ${approvedItem.price || '0'}
+                      </span>
+                    )}
+                  </div>
+
+                  {approvedItem && (
+                    <div className="mb-4 p-3 bg-gray-50 rounded-lg">
                       {approvedItem.description && (
-                        <p className="text-white/90 text-xs line-clamp-2 mb-2" style={{ fontFamily: 'Inter, sans-serif' }}>
+                        <p className="text-sm text-[#707072] mb-2" style={{ fontFamily: 'Inter, sans-serif' }}>
                           {approvedItem.description}
                         </p>
                       )}
-                      <div className="flex justify-between items-center">
-                        <p className="text-white text-sm font-bold" style={{ fontFamily: 'Inter, sans-serif' }}>
-                          ${approvedItem.price || '0'}
-                        </p>
-                        {approvedItem.category && (
-                          <span className="text-xs bg-white/20 px-2 py-1 rounded text-white" style={{ fontFamily: 'Inter, sans-serif' }}>
-                            {approvedItem.category}
-                          </span>
-                        )}
-                      </div>
+                      {approvedItem.category && (
+                        <span className="inline-block text-xs bg-[#e6c35a]/20 px-3 py-1 rounded text-[#101010] font-semibold" style={{ fontFamily: 'Inter, sans-serif' }}>
+                          {approvedItem.category}
+                        </span>
+                      )}
                     </div>
+                  )}
+
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    {groupPhotos.map((photo, photoIdx) => {
+                      const actualPhotoIndex = group.startIndex + photoIdx
+                      const isPhotoSold = item.soldPhotoIndices?.includes(actualPhotoIndex)
+
+                      return (
+                        <div key={photoIdx} className="relative group">
+                          <img
+                            src={photo}
+                            alt={`${group.title} - Photo ${photoIdx + 1}`}
+                            className={`w-full h-64 object-cover rounded-lg border-2 transition-all cursor-pointer ${
+                              isPhotoSold
+                                ? 'border-gray-300 opacity-60 grayscale'
+                                : 'border-gray-200 hover:border-[#e6c35a]'
+                            }`}
+                            onClick={() => !isPhotoSold && window.open(photo, '_blank')}
+                          />
+                          
+                          {isPhotoSold && (
+                            <div className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-lg">
+                              <div className="bg-red-600 text-white px-3 py-1 rounded-lg font-bold text-sm shadow-lg" style={{ fontFamily: 'Inter, sans-serif' }}>
+                                SOLD
+                              </div>
+                            </div>
+                          )}
+
+                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all rounded-lg pointer-events-none"></div>
+                        </div>
+                      )
+                    })}
                   </div>
-                ))}
-              </div>
-            ) : (
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {item.photos.map((photo, idx) => (
-                  <div key={idx} className="relative group">
-                    <img 
-                      src={photo} 
-                      alt={`Photo ${idx + 1}`} 
-                      className="w-full h-64 object-cover rounded-lg border-2 border-gray-200 hover:border-[#e6c35a] transition-all cursor-pointer"
-                      onClick={() => window.open(photo, '_blank')}
-                    />
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all rounded-lg pointer-events-none"></div>
-                  </div>
-                ))}
-              </div>
-            )}
+                </div>
+              )
+            })}
           </div>
         ) : (
           <div className="bg-white p-12 rounded-xl shadow-md text-center">
@@ -288,7 +323,7 @@ function ClientItemGalleryPage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
             <p className="text-[#707072] mb-4" style={{ fontFamily: 'Inter, sans-serif' }}>
-              No photos uploaded yet
+              No items uploaded yet
             </p>
             {canUpload && (
               <button
@@ -296,7 +331,7 @@ function ClientItemGalleryPage() {
                 className="px-8 py-3 bg-[#e6c35a] text-black rounded-lg font-bold hover:bg-[#edd88c] transition-all shadow-md"
                 style={{ fontFamily: 'Inter, sans-serif' }}
               >
-                Upload Photos
+                Add New Item
               </button>
             )}
           </div>
@@ -307,7 +342,7 @@ function ClientItemGalleryPage() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full p-6">
             <h3 className="text-xl font-bold text-[#101010] mb-4" style={{ fontFamily: 'Playfair Display, serif' }}>
-              Upload More Photos
+              Add New Item
             </h3>
 
             {uploadError && (
@@ -334,13 +369,13 @@ function ClientItemGalleryPage() {
               <>
                 <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-100">
                   <p className="text-xs text-blue-800" style={{ fontFamily: 'Inter, sans-serif' }}>
-                    💡 <strong>Tip:</strong> Upload clear photos.
+                    💡 <strong>Tip:</strong> For best marketplace results, we recommend at least 4 clear photos per item showing different angles.
                   </p>
                 </div>
 
                 <div className="mb-6">
                   <label className="block text-sm font-semibold text-[#101010] mb-2" style={{ fontFamily: 'Inter, sans-serif' }}>
-                    Select Photos (Max 10 at a time)
+                    Select Photos for This Item
                   </label>
                   <input
                     type="file"
@@ -351,8 +386,8 @@ function ClientItemGalleryPage() {
                     style={{ fontFamily: 'Inter, sans-serif' }}
                   />
                   {selectedFiles.length > 0 && (
-                    <p className={`text-sm mt-2 ${selectedFiles.length === 10 ? 'text-[#e6c35a] font-semibold' : 'text-[#707072]'}`} style={{ fontFamily: 'Inter, sans-serif' }}>
-                      {selectedFiles.length} / 10 file(s) selected
+                    <p className="text-sm mt-2 text-[#707072]" style={{ fontFamily: 'Inter, sans-serif' }}>
+                      {selectedFiles.length} photo(s) selected
                     </p>
                   )}
                 </div>
@@ -364,9 +399,9 @@ function ClientItemGalleryPage() {
                     </p>
                     <div className="grid grid-cols-3 gap-2">
                       {Array.from(selectedFiles).slice(0, 6).map((file, i) => (
-                        <img 
+                        <img
                           key={i}
-                          src={URL.createObjectURL(file)} 
+                          src={URL.createObjectURL(file)}
                           alt={`Preview ${i + 1}`}
                           className="w-full h-24 object-cover rounded-lg"
                         />
@@ -398,7 +433,7 @@ function ClientItemGalleryPage() {
                     className="w-full sm:flex-1 px-6 py-3 bg-[#e6c35a] text-black rounded-lg font-bold hover:bg-[#edd88c] transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
                     style={{ fontFamily: 'Inter, sans-serif' }}
                   >
-                    Upload
+                    Upload Item
                   </button>
                 </div>
               </>

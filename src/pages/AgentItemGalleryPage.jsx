@@ -42,21 +42,20 @@ function AgentItemGalleryPage() {
       setError('')
       const data = await getItemById(id)
       setItem(data)
-      
+
       if (data.ai && Array.isArray(data.ai)) {
-        const approvedPhotoIndices = new Set(
-          (data.approvedItems || []).map(item => item.photoIndex)
+        const approvedItemNumbers = new Set(
+          (data.approvedItems || []).map(approvedItem => approvedItem.itemNumber)
         )
-        
+
         const newAiItems = data.ai.filter(
-          aiItem => !approvedPhotoIndices.has(aiItem.photoIndex)
+          aiItem => !approvedItemNumbers.has(aiItem.itemNumber)
         )
-        
+
         const edited = {}
         const selected = {}
-        newAiItems.forEach((aiItem, index) => {
-          const originalIndex = data.ai.indexOf(aiItem)
-          edited[originalIndex] = {
+        newAiItems.forEach((aiItem) => {
+          edited[aiItem.itemNumber] = {
             title: aiItem.title || '',
             description: aiItem.description || '',
             category: aiItem.category || '',
@@ -64,7 +63,7 @@ function AgentItemGalleryPage() {
             priceHigh: aiItem.priceHigh || '',
             price: aiItem.price || ''
           }
-          selected[originalIndex] = true 
+          selected[aiItem.itemNumber] = false
         })
         setEditedItems(edited)
         setSelectedItems(selected)
@@ -76,25 +75,25 @@ function AgentItemGalleryPage() {
     }
   }
 
-  const analyzedIndices = new Set(item?.analyzedPhotoIndices || [])
-  const unanalyzedPhotos = item?.photos?.filter((_, idx) => !analyzedIndices.has(idx)) || []
-  const hasUnanalyzedPhotos = unanalyzedPhotos.length > 0
+  const analyzedGroupIndices = new Set(item?.analyzedGroupIndices || [])
+  const unanalyzedGroups = item?.photoGroups?.filter(group => !analyzedGroupIndices.has(group.itemNumber)) || []
+  const hasUnanalyzedGroups = unanalyzedGroups.length > 0
   const canUpload = true
-  const canAnalyze = item && (item.status === 'draft' || item.status === 'needs_review') && hasUnanalyzedPhotos
-  
-  const approvedPhotoIndices = new Set(
-    (item?.approvedItems || []).map(item => item.photoIndex)
+  const canAnalyze = item && (item.status === 'draft' || item.status === 'needs_review') && hasUnanalyzedGroups
+
+  const approvedItemNumbers = new Set(
+    (item?.approvedItems || []).map(approvedItem => approvedItem.itemNumber)
   )
   const newAiItems = (item?.ai || []).filter(
-    aiItem => !approvedPhotoIndices.has(aiItem.photoIndex)
+    aiItem => !approvedItemNumbers.has(aiItem.itemNumber)
   )
-  
+
   const canApprove = item && (item.status === 'draft' || item.status === 'needs_review') && newAiItems.length > 0
   const isApproved = item && item.status === 'approved'
 
   const handleAnalyze = async () => {
     if (!canAnalyze) return
-    
+
     try {
       setIsAnalyzing(true)
       setAnalyzeError('')
@@ -107,20 +106,20 @@ function AgentItemGalleryPage() {
     }
   }
 
-  const handleEditItem = (index, field, value) => {
+  const handleEditItem = (itemNumber, field, value) => {
     setEditedItems(prev => ({
       ...prev,
-      [index]: {
-        ...prev[index],
+      [itemNumber]: {
+        ...prev[itemNumber],
         [field]: value
       }
     }))
   }
 
-  const toggleSelectItem = (index) => {
+  const toggleSelectItem = (itemNumber) => {
     setSelectedItems(prev => ({
       ...prev,
-      [index]: !prev[index]
+      [itemNumber]: !prev[itemNumber]
     }))
   }
 
@@ -135,20 +134,28 @@ function AgentItemGalleryPage() {
 
   const handleBatchApprove = async () => {
     if (!canApprove) return
-    
+
     try {
       setIsApproving(true)
       setApproveError('')
-      
+
       const itemsToApprove = []
-      Object.keys(selectedItems).forEach(index => {
-        if (selectedItems[index]) {
+
+      Object.keys(selectedItems).forEach(itemNumber => {
+        if (selectedItems[itemNumber]) {
+          const aiItem = item.ai.find(ai => ai.itemNumber === parseInt(itemNumber))
           itemsToApprove.push({
-            photoIndex: parseInt(index),
-            ...editedItems[index]
+            itemNumber: parseInt(itemNumber),
+            photoIndices: aiItem.photoIndices,
+            ...editedItems[itemNumber]
           })
         }
       })
+
+      if (itemsToApprove.length === 0) {
+        setApproveError('Please select at least one item to approve')
+        return
+      }
 
       await approveItem(id, { items: itemsToApprove })
       await loadItem()
@@ -181,14 +188,8 @@ function AgentItemGalleryPage() {
 
   const handleFileSelect = (e) => {
     const files = Array.from(e.target.files)
-    
-    if (files.length > 10) {
-      setUploadError('Maximum 10 photos can be uploaded at a time')
-      setSelectedFiles(files.slice(0, 10))
-    } else {
-      setSelectedFiles(files)
-      setUploadError('')
-    }
+    setSelectedFiles(files)
+    setUploadError('')
   }
 
   const handleUpload = async () => {
@@ -211,13 +212,17 @@ function AgentItemGalleryPage() {
     }
   }
 
+  const getPhotosForGroup = (group) => {
+    if (!item || !item.photos) return []
+    return item.photos.slice(group.startIndex, group.endIndex + 1)
+  }
+
   const selectedCount = Object.values(selectedItems).filter(v => v).length
   const totalNewItems = newAiItems.length
 
-  // Check if all selected items have a price filled
-  const allSelectedHavePrice = Object.keys(selectedItems).every(index => {
-    if (!selectedItems[index]) return true // Skip unselected items
-    const price = editedItems[index]?.price
+  const allSelectedHavePrice = Object.keys(selectedItems).every(itemNumber => {
+    if (!selectedItems[itemNumber]) return true
+    const price = editedItems[itemNumber]?.price
     return price && price.toString().trim() !== '' && parseFloat(price) > 0
   })
 
@@ -243,7 +248,7 @@ function AgentItemGalleryPage() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <div className="flex justify-between items-center">
               <img src={logo} alt="Kept House" className="h-12 w-auto" />
-              <button 
+              <button
                 onClick={handleLogout}
                 className="px-4 py-2 bg-[#707072] text-[#F8F5F0] rounded-lg text-sm font-medium hover:bg-gray-600 transition-all"
                 style={{ fontFamily: 'Inter, sans-serif' }}
@@ -281,7 +286,7 @@ function AgentItemGalleryPage() {
               <span className="text-sm text-[#e6c35a]" style={{ fontFamily: 'Inter, sans-serif' }}>
                 {auth?.user?.name} (Agent)
               </span>
-              <button 
+              <button
                 onClick={handleLogout}
                 className="px-4 py-2 bg-[#707072] text-[#F8F5F0] rounded-lg text-sm font-medium hover:bg-gray-600 transition-all"
                 style={{ fontFamily: 'Inter, sans-serif' }}
@@ -309,20 +314,19 @@ function AgentItemGalleryPage() {
             </h1>
             <div className="flex items-center gap-3">
               <p className="text-[#707072]" style={{ fontFamily: 'Inter, sans-serif' }}>
-                {item.photos?.length || 0} photo(s)
+                {item.photoGroups?.length || 0} item(s) • {item.photos?.length || 0} photo(s)
               </p>
-              <span 
-                className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                  item.status === 'approved' ? 'bg-green-100 text-green-800' :
+              <span
+                className={`px-3 py-1 rounded-full text-xs font-semibold ${item.status === 'approved' ? 'bg-green-100 text-green-800' :
                   item.status === 'needs_review' ? 'bg-orange-100 text-orange-800' :
-                  'bg-blue-100 text-blue-800'
-                }`}
+                    'bg-blue-100 text-blue-800'
+                  }`}
                 style={{ fontFamily: 'Inter, sans-serif' }}
               >
-                {item.status === 'draft' ? 'Draft' : 
-                 item.status === 'needs_review' ? 'Needs Review' :
-                 item.status === 'approved' ? 'Approved' :
-                 item.status}
+                {item.status === 'draft' ? 'Draft' :
+                  item.status === 'needs_review' ? 'Needs Review' :
+                    item.status === 'approved' ? 'Approved' :
+                      item.status}
               </span>
             </div>
           </div>
@@ -332,7 +336,7 @@ function AgentItemGalleryPage() {
               className="px-6 py-3 bg-[#e6c35a] text-black rounded-lg font-bold hover:bg-[#edd88c] transition-all shadow-md"
               style={{ fontFamily: 'Inter, sans-serif' }}
             >
-              + Upload Photos
+              + Add New Item
             </button>
             {isApproved && (
               <button
@@ -352,7 +356,7 @@ function AgentItemGalleryPage() {
               📸 Ready to analyze
             </p>
             <p className="text-sm text-blue-800" style={{ fontFamily: 'Inter, sans-serif' }}>
-              Ask the client to upload all photos for this project before running AI. You can also upload on their behalf. When everything looks good, run AI analysis below.
+              Client has uploaded items. When all items are uploaded, run AI analysis below to generate listings.
             </p>
           </div>
         )}
@@ -363,32 +367,32 @@ function AgentItemGalleryPage() {
               ⚠️ Review AI results before approving
             </p>
             <p className="text-sm text-yellow-800" style={{ fontFamily: 'Inter, sans-serif' }}>
-              Review AI details below. Edit anything (title, category, price), then select items to approve. Once approved, client uploads are locked.
+              Review AI details below. Edit anything (title, category, price), then select items to approve.
             </p>
           </div>
         )}
 
-        {item.status === 'needs_review' && hasUnanalyzedPhotos && (
+        {item.status === 'needs_review' && hasUnanalyzedGroups && (
           <div className="mb-6 p-4 bg-orange-50 rounded-lg border border-orange-200">
             <p className="text-sm text-orange-800 font-semibold mb-1" style={{ fontFamily: 'Inter, sans-serif' }}>
-              {item.approvedItems && item.approvedItems.length > 0 ? '🔄 New photos need AI analysis' : '📸 Ready to analyze'}
+              {item.approvedItems && item.approvedItems.length > 0 ? '🔄 New items need AI analysis' : '📸 Ready to analyze'}
             </p>
             <p className="text-sm text-orange-800" style={{ fontFamily: 'Inter, sans-serif' }}>
-              {item.approvedItems && item.approvedItems.length > 0 
-                ? `${unanalyzedPhotos.length} new photo(s) uploaded. Run AI analysis below to process only the new photos. Previously approved items remain unchanged.`
-                : `${unanalyzedPhotos.length} photo(s) uploaded. Run AI analysis below to get started.`
+              {item.approvedItems && item.approvedItems.length > 0
+                ? `${unanalyzedGroups.length} new item(s) uploaded. Run AI analysis below to process only the new items. Previously approved items remain unchanged.`
+                : `${unanalyzedGroups.length} item(s) uploaded. Run AI analysis below to get started.`
               }
             </p>
           </div>
         )}
 
-        {item.status === 'needs_review' && !hasUnanalyzedPhotos && item.approvedItems && item.approvedItems.length > 0 && (
+        {item.status === 'needs_review' && !hasUnanalyzedGroups && item.approvedItems && item.approvedItems.length > 0 && (
           <div className="mb-6 p-4 bg-orange-50 rounded-lg border border-orange-200">
             <p className="text-sm text-orange-800 font-semibold mb-1" style={{ fontFamily: 'Inter, sans-serif' }}>
               🔄 Item reopened for changes
             </p>
             <p className="text-sm text-orange-800" style={{ fontFamily: 'Inter, sans-serif' }}>
-              This item was reopened. Review and approve the analyzed items below. You can also upload more photos if needed.
+              This item was reopened. Review and approve the analyzed items below. You can also upload more items if needed.
             </p>
           </div>
         )}
@@ -399,59 +403,95 @@ function AgentItemGalleryPage() {
               ✓ Items approved and ready for listing
             </p>
             <p className="text-sm text-green-800" style={{ fontFamily: 'Inter, sans-serif' }}>
-              {item.approvedItems?.length || 0} item(s) approved. You can add more photos on behalf of the client. New uploads will require re-analysis and approval.
+              {item.approvedItems?.length || 0} item(s) approved. You can add more items on behalf of the client. New uploads will require re-analysis and approval.
             </p>
           </div>
         )}
 
-        {item.approvedItems && item.approvedItems.length > 0 && (
-          <div className="mb-6">
+        {isApproved && item.approvedItems && item.approvedItems.length > 0 && (
+          <div className="mb-8">
             <h3 className="text-lg font-bold text-[#101010] mb-4" style={{ fontFamily: 'Playfair Display, serif' }}>
-              Previously Approved Items ({item.approvedItems.length})
+              Approved & Listed Items
             </h3>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {item.approvedItems.map((approvedItem, idx) => (
-                <div key={idx} className="relative group">
-                  <img
-                    src={item.photos[approvedItem.photoIndex]}
-                    alt={approvedItem.title || `Item ${idx + 1}`}
-                    className="w-full h-64 object-cover rounded-lg border-2 border-green-200 hover:border-[#e6c35a] transition-all cursor-pointer"
-                    onClick={() => window.open(item.photos[approvedItem.photoIndex], '_blank')}
-                  />
-                  <div className="absolute top-2 left-2 bg-green-600 text-white text-xs px-2 py-1 rounded font-semibold">
-                    ✓ Approved
-                  </div>
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-200 rounded-lg p-3 flex flex-col justify-end">
-                    <p className="text-white text-sm font-bold line-clamp-2 mb-1" style={{ fontFamily: 'Inter, sans-serif' }}>
-                      {approvedItem.title || 'Untitled'}
-                    </p>
-                    {approvedItem.description && (
-                      <p className="text-white/90 text-xs line-clamp-2 mb-2" style={{ fontFamily: 'Inter, sans-serif' }}>
-                        {approvedItem.description}
-                      </p>
-                    )}
-                    <div className="flex justify-between items-center">
-                      <p className="text-white text-sm font-bold" style={{ fontFamily: 'Inter, sans-serif' }}>
-                        ${approvedItem.price || '0'}
-                      </p>
-                      {approvedItem.category && (
-                        <span className="text-xs bg-white/20 px-2 py-1 rounded text-white" style={{ fontFamily: 'Inter, sans-serif' }}>
-                          {approvedItem.category}
-                        </span>
-                      )}
+            <div className="space-y-6">
+              {item.approvedItems.map((approvedItem, idx) => {
+                const photoIndices = approvedItem.photoIndices || []
+                const isSold = photoIndices.some(photoIdx => item.soldPhotoIndices?.includes(photoIdx))
+
+                return (
+                  <div key={idx} className="bg-white p-6 rounded-xl shadow-md">
+                    <div className="flex justify-between items-start mb-4">
+                      <div className="flex-1">
+                        <h4 className="text-xl font-bold text-[#101010] mb-2" style={{ fontFamily: 'Playfair Display, serif' }}>
+                          {approvedItem.title || `Item ${approvedItem.itemNumber}`}
+                        </h4>
+                        {approvedItem.description && (
+                          <p className="text-sm text-[#707072] mb-2" style={{ fontFamily: 'Inter, sans-serif' }}>
+                            {approvedItem.description}
+                          </p>
+                        )}
+                        <div className="flex gap-2 items-center">
+                          {approvedItem.category && (
+                            <span className="text-xs bg-[#e6c35a]/20 px-3 py-1 rounded text-[#101010] font-semibold" style={{ fontFamily: 'Inter, sans-serif' }}>
+                              {approvedItem.category}
+                            </span>
+                          )}
+                          <span className="text-sm text-[#707072]" style={{ fontFamily: 'Inter, sans-serif' }}>
+                            {photoIndices.length} photo(s)
+                          </span>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        {isSold ? (
+                          <span className="px-4 py-2 bg-red-600 text-white rounded-lg font-bold text-sm" style={{ fontFamily: 'Inter, sans-serif' }}>
+                            SOLD ✓
+                          </span>
+                        ) : (
+                          <span className="px-4 py-2 bg-green-100 text-green-800 rounded-lg font-bold text-lg" style={{ fontFamily: 'Inter, sans-serif' }}>
+                            ${approvedItem.price || '0'}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                      {photoIndices.map((photoIdx, photoIndex) => {
+                        const isPhotoSold = item.soldPhotoIndices?.includes(photoIdx)
+                        return (
+                          <div key={photoIndex} className="relative group">
+                            <img
+                              src={item.photos[photoIdx]}
+                              alt={`${approvedItem.title} - Photo ${photoIndex + 1}`}
+                              className={`w-full h-48 object-cover rounded-lg border-2 transition-all cursor-pointer ${isPhotoSold
+                                  ? 'border-gray-300 opacity-60 grayscale'
+                                  : 'border-gray-200 hover:border-[#e6c35a]'
+                                }`}
+                              onClick={() => !isPhotoSold && window.open(item.photos[photoIdx], '_blank')}
+                            />
+                            {isPhotoSold && (
+                              <div className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-lg">
+                                <div className="bg-red-600 text-white px-3 py-1 rounded-lg font-bold text-sm shadow-lg" style={{ fontFamily: 'Inter, sans-serif' }}>
+                                  SOLD
+                                </div>
+                              </div>
+                            )}
+                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all rounded-lg pointer-events-none"></div>
+                          </div>
+                        )
+                      })}
                     </div>
                   </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           </div>
         )}
 
-        {hasUnanalyzedPhotos && (
+        {hasUnanalyzedGroups && (
           <div className="mb-6">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-bold text-[#101010]" style={{ fontFamily: 'Playfair Display, serif' }}>
-                New Photos ({unanalyzedPhotos.length})
+                New Items ({unanalyzedGroups.length})
               </h3>
               <button
                 onClick={handleAnalyze}
@@ -459,24 +499,36 @@ function AgentItemGalleryPage() {
                 className="px-4 py-2 bg-[#101010] text-[#F8F5F0] rounded-lg font-semibold hover:bg-[#707072] transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed text-sm"
                 style={{ fontFamily: 'Inter, sans-serif' }}
               >
-                🤖 Analyze {unanalyzedPhotos.length} New Photo{unanalyzedPhotos.length !== 1 ? 's' : ''}
+                🤖 Analyze {unanalyzedGroups.length} New Item{unanalyzedGroups.length !== 1 ? 's' : ''}
               </button>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {item.photos.map((photo, idx) => {
-                if (analyzedIndices.has(idx)) return null
+            <div className="space-y-4">
+              {unanalyzedGroups.map((group) => {
+                const groupPhotos = getPhotosForGroup(group)
                 return (
-                  <div key={idx} className="relative group">
-                    <img 
-                      src={photo} 
-                      alt={`New Photo ${idx + 1}`} 
-                      className="w-full h-64 object-cover rounded-lg border-2 border-blue-200 hover:border-[#e6c35a] transition-all cursor-pointer"
-                      onClick={() => window.open(photo, '_blank')}
-                    />
-                    <div className="absolute top-2 left-2 bg-blue-600 text-white text-xs px-2 py-1 rounded font-semibold">
-                      New
+                  <div key={group.itemNumber} className="bg-white p-4 rounded-xl shadow-md border-2 border-blue-200">
+                    <h4 className="text-md font-bold text-[#101010] mb-2" style={{ fontFamily: 'Playfair Display, serif' }}>
+                      {group.title}
+                    </h4>
+                    <p className="text-sm text-[#707072] mb-3" style={{ fontFamily: 'Inter, sans-serif' }}>
+                      {group.photoCount} photo(s)
+                    </p>
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                      {groupPhotos.map((photo, idx) => (
+                        <div key={idx} className="relative group">
+                          <img
+                            src={photo}
+                            alt={`${group.title} - Photo ${idx + 1}`}
+                            className="w-full h-48 object-cover rounded-lg border-2 border-blue-200 hover:border-[#e6c35a] transition-all cursor-pointer"
+                            onClick={() => window.open(photo, '_blank')}
+                          />
+                          <div className="absolute top-2 left-2 bg-blue-600 text-white text-xs px-2 py-1 rounded font-semibold">
+                            New
+                          </div>
+                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all rounded-lg pointer-events-none"></div>
+                        </div>
+                      ))}
                     </div>
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all rounded-lg pointer-events-none"></div>
                   </div>
                 )
               })}
@@ -504,7 +556,7 @@ function AgentItemGalleryPage() {
                       {analyzeError}
                     </p>
                   </div>
-                  <button 
+                  <button
                     onClick={() => setAnalyzeError('')}
                     className="text-red-400 hover:text-red-600 font-bold"
                   >
@@ -520,7 +572,7 @@ function AgentItemGalleryPage() {
                   <div className="flex justify-between items-center">
                     <div>
                       <p className="text-sm text-green-800 font-semibold" style={{ fontFamily: 'Inter, sans-serif' }}>
-                        ✓ AI Analysis Complete! {totalNewItems} new item{totalNewItems !== 1 ? 's' : ''} to review
+                        ✓ AI Analysis Complete! {totalNewItems} item{totalNewItems !== 1 ? 's' : ''} analyzed
                       </p>
                       <p className="text-xs text-green-700 mt-1" style={{ fontFamily: 'Inter, sans-serif' }}>
                         {selectedCount} selected for approval
@@ -538,130 +590,153 @@ function AgentItemGalleryPage() {
                 </div>
 
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {newAiItems.map((aiItem, displayIndex) => {
-                    const originalIndex = item.ai.indexOf(aiItem)
+                  {newAiItems.map((aiItem) => {
+                    const groupPhotos = aiItem.photoIndices.map(idx => item.photos[idx])
+                    const firstPhoto = groupPhotos[0]
+                    
                     return (
-                    <div 
-                      key={originalIndex} 
-                      className={`border-2 rounded-lg overflow-hidden transition-all ${
-                        selectedItems[originalIndex] ? 'border-[#e6c35a] bg-white' : 'border-gray-200 bg-gray-50'
-                      }`}
-                    >
-                      <div className="relative">
-                        <img 
-                          src={aiItem.photoUrl || item.photos[aiItem.photoIndex]} 
-                          alt={`Item ${displayIndex + 1}`}
-                          className="w-full h-48 object-cover cursor-pointer"
-                          onClick={() => window.open(aiItem.photoUrl || item.photos[aiItem.photoIndex], '_blank')}
-                          onError={(e) => {
-                            e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect fill="%23ddd" width="100" height="100"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="%23999"%3ENo Image%3C/text%3E%3C/svg%3E';
-                          }}
-                        />
-                        <div className="absolute top-2 left-2">
-                          <input
-                            type="checkbox"
-                            checked={selectedItems[originalIndex] || false}
-                            onChange={() => toggleSelectItem(originalIndex)}
-                            className="w-5 h-5 rounded border-2 border-white cursor-pointer"
+                      <div
+                        key={aiItem.itemNumber}
+                        className={`border-2 rounded-lg overflow-hidden transition-all ${selectedItems[aiItem.itemNumber] ? 'border-[#e6c35a] bg-white' : 'border-gray-200 bg-gray-50'
+                          }`}
+                      >
+                        <div className="relative">
+                          <img
+                            src={firstPhoto}
+                            alt={`Item ${aiItem.itemNumber}`}
+                            className="w-full h-48 object-cover cursor-pointer"
+                            onClick={() => window.open(firstPhoto, '_blank')}
                           />
-                        </div>
-                        {aiItem.confidence && (
-                          <div className="absolute top-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
-                            {Math.round(aiItem.confidence * 100)}%
+                          <div className="absolute top-2 left-2">
+                            <input
+                              type="checkbox"
+                              checked={selectedItems[aiItem.itemNumber] || false}
+                              onChange={() => toggleSelectItem(aiItem.itemNumber)}
+                              className="w-5 h-5 rounded border-2 border-white cursor-pointer"
+                            />
                           </div>
-                        )}
-                      </div>
-
-                      <div className="p-4 space-y-3">
-                        <div>
-                          <label className="block text-xs font-semibold text-[#707072] mb-1" style={{ fontFamily: 'Inter, sans-serif' }}>
-                            Title
-                          </label>
-                          <input
-                            type="text"
-                            value={editedItems[originalIndex]?.title || ''}
-                            onChange={(e) => handleEditItem(originalIndex, 'title', e.target.value)}
-                            className="w-full px-3 py-2 border border-[#707072]/30 rounded-lg text-sm focus:outline-none focus:border-[#e6c35a] focus:ring-1 focus:ring-[#e6c35a]"
-                            style={{ fontFamily: 'Inter, sans-serif' }}
-                            placeholder="Item title"
-                          />
+                          {aiItem.confidence && (
+                            <div className="absolute top-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
+                              {Math.round(aiItem.confidence * 100)}%
+                            </div>
+                          )}
+                          {groupPhotos.length > 1 && (
+                            <div className="absolute bottom-2 right-2 bg-[#e6c35a] text-black text-xs px-2 py-1 rounded font-bold">
+                              {groupPhotos.length} photos
+                            </div>
+                          )}
                         </div>
 
-                        <div className="grid grid-cols-2 gap-2">
+                        <div className="p-4 space-y-3">
                           <div>
                             <label className="block text-xs font-semibold text-[#707072] mb-1" style={{ fontFamily: 'Inter, sans-serif' }}>
-                              Category
-                            </label>
-                            <select
-                              value={editedItems[originalIndex]?.category || ''}
-                              onChange={(e) => handleEditItem(originalIndex, 'category', e.target.value)}
-                              className="w-full px-3 py-2 border border-[#707072]/30 rounded-lg text-sm focus:outline-none focus:border-[#e6c35a] focus:ring-1 focus:ring-[#e6c35a]"
-                              style={{ fontFamily: 'Inter, sans-serif' }}
-                            >
-                              <option value="">Select</option>
-                              <option value="Furniture">Furniture</option>
-                              <option value="Tools">Tools</option>
-                              <option value="Jewelry">Jewelry</option>
-                              <option value="Art">Art</option>
-                              <option value="Electronics">Electronics</option>
-                              <option value="Outdoor">Outdoor</option>
-                              <option value="Appliances">Appliances</option>
-                              <option value="Kitchen">Kitchen</option>
-                              <option value="Collectibles">Collectibles</option>
-                              <option value="Books/Media">Books/Media</option>
-                              <option value="Clothing">Clothing</option>
-                              <option value="Misc">Misc</option>
-                            </select>
-                          </div>
-
-                          <div>
-                            <label className="block text-xs font-semibold text-[#707072] mb-1" style={{ fontFamily: 'Inter, sans-serif' }}>
-                              Final Price ($)
+                              Title
                             </label>
                             <input
-                              type="number"
-                              value={editedItems[originalIndex]?.price || ''}
-                              onChange={(e) => handleEditItem(originalIndex, 'price', e.target.value)}
+                              type="text"
+                              value={editedItems[aiItem.itemNumber]?.title || ''}
+                              onChange={(e) => handleEditItem(aiItem.itemNumber, 'title', e.target.value)}
                               className="w-full px-3 py-2 border border-[#707072]/30 rounded-lg text-sm focus:outline-none focus:border-[#e6c35a] focus:ring-1 focus:ring-[#e6c35a]"
                               style={{ fontFamily: 'Inter, sans-serif' }}
-                              placeholder="0.00"
+                              placeholder="Item title"
                             />
-                            {(editedItems[originalIndex]?.priceLow || editedItems[originalIndex]?.priceHigh) && (
-                              <p className="text-xs text-[#707072] mt-1" style={{ fontFamily: 'Inter, sans-serif' }}>
-                                AI Range: ${editedItems[originalIndex]?.priceLow || 0} - ${editedItems[originalIndex]?.priceHigh || 0}
-                              </p>
-                            )}
                           </div>
-                        </div>
 
-                        <button
-                          onClick={() => setExpandedItem(expandedItem === originalIndex ? null : originalIndex)}
-                          className="w-full text-xs text-[#101010] hover:text-[#e6c35a] font-semibold"
-                          style={{ fontFamily: 'Inter, sans-serif' }}
-                        >
-                          {expandedItem === originalIndex ? '▲ Less' : '▼ More Details'}
-                        </button>
-
-                        {expandedItem === originalIndex && (
-                          <div className="pt-2 border-t border-gray-200 space-y-2">
+                          <div className="grid grid-cols-2 gap-2">
                             <div>
                               <label className="block text-xs font-semibold text-[#707072] mb-1" style={{ fontFamily: 'Inter, sans-serif' }}>
-                                Description
+                                Category
                               </label>
-                              <textarea
-                                rows="3"
-                                value={editedItems[originalIndex]?.description || ''}
-                                onChange={(e) => handleEditItem(originalIndex, 'description', e.target.value)}
-                                className="w-full px-3 py-2 border border-[#707072]/30 rounded-lg text-sm focus:outline-none focus:border-[#e6c35a] focus:ring-1 focus:ring-[#e6c35a] resize-none"
+                              <select
+                                value={editedItems[aiItem.itemNumber]?.category || ''}
+                                onChange={(e) => handleEditItem(aiItem.itemNumber, 'category', e.target.value)}
+                                className="w-full px-3 py-2 border border-[#707072]/30 rounded-lg text-sm focus:outline-none focus:border-[#e6c35a] focus:ring-1 focus:ring-[#e6c35a]"
                                 style={{ fontFamily: 'Inter, sans-serif' }}
-                                placeholder="Item description"
+                              >
+                                <option value="">Select</option>
+                                <option value="Furniture">Furniture</option>
+                                <option value="Tools">Tools</option>
+                                <option value="Jewelry">Jewelry</option>
+                                <option value="Art">Art</option>
+                                <option value="Electronics">Electronics</option>
+                                <option value="Outdoor">Outdoor</option>
+                                <option value="Appliances">Appliances</option>
+                                <option value="Kitchen">Kitchen</option>
+                                <option value="Collectibles">Collectibles</option>
+                                <option value="Books/Media">Books/Media</option>
+                                <option value="Clothing">Clothing</option>
+                                <option value="Misc">Misc</option>
+                              </select>
+                            </div>
+
+                            <div>
+                              <label className="block text-xs font-semibold text-[#707072] mb-1" style={{ fontFamily: 'Inter, sans-serif' }}>
+                                Final Price ($)
+                              </label>
+                              <input
+                                type="number"
+                                value={editedItems[aiItem.itemNumber]?.price || ''}
+                                onChange={(e) => handleEditItem(aiItem.itemNumber, 'price', e.target.value)}
+                                className="w-full px-3 py-2 border border-[#707072]/30 rounded-lg text-sm focus:outline-none focus:border-[#e6c35a] focus:ring-1 focus:ring-[#e6c35a]"
+                                style={{ fontFamily: 'Inter, sans-serif' }}
+                                placeholder="0.00"
                               />
+                              {(editedItems[aiItem.itemNumber]?.priceLow || editedItems[aiItem.itemNumber]?.priceHigh) && (
+                                <p className="text-xs text-[#707072] mt-1" style={{ fontFamily: 'Inter, sans-serif' }}>
+                                  AI Range: ${editedItems[aiItem.itemNumber]?.priceLow || 0} - ${editedItems[aiItem.itemNumber]?.priceHigh || 0}
+                                </p>
+                              )}
                             </div>
                           </div>
-                        )}
+
+                          <button
+                            onClick={() => setExpandedItem(expandedItem === aiItem.itemNumber ? null : aiItem.itemNumber)}
+                            className="w-full text-xs text-[#101010] hover:text-[#e6c35a] font-semibold"
+                            style={{ fontFamily: 'Inter, sans-serif' }}
+                          >
+                            {expandedItem === aiItem.itemNumber ? '▲ Less' : '▼ More Details'}
+                          </button>
+
+                          {expandedItem === aiItem.itemNumber && (
+                            <div className="pt-2 border-t border-gray-200 space-y-2">
+                              <div>
+                                <label className="block text-xs font-semibold text-[#707072] mb-1" style={{ fontFamily: 'Inter, sans-serif' }}>
+                                  Description
+                                </label>
+                                <textarea
+                                  rows="3"
+                                  value={editedItems[aiItem.itemNumber]?.description || ''}
+                                  onChange={(e) => handleEditItem(aiItem.itemNumber, 'description', e.target.value)}
+                                  className="w-full px-3 py-2 border border-[#707072]/30 rounded-lg text-sm focus:outline-none focus:border-[#e6c35a] focus:ring-1 focus:ring-[#e6c35a] resize-none"
+                                  style={{ fontFamily: 'Inter, sans-serif' }}
+                                  placeholder="Item description"
+                                />
+                              </div>
+                              
+                              {groupPhotos.length > 1 && (
+                                <div>
+                                  <label className="block text-xs font-semibold text-[#707072] mb-2" style={{ fontFamily: 'Inter, sans-serif' }}>
+                                    All Photos ({groupPhotos.length})
+                                  </label>
+                                  <div className="grid grid-cols-3 gap-2">
+                                    {groupPhotos.map((photo, idx) => (
+                                      <img
+                                        key={idx}
+                                        src={photo}
+                                        alt={`Photo ${idx + 1}`}
+                                        className="w-full h-20 object-cover rounded border border-gray-300 cursor-pointer hover:border-[#e6c35a]"
+                                        onClick={() => window.open(photo, '_blank')}
+                                      />
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  )})}
+                    )
+                  })}
                 </div>
 
                 {canApprove && (
@@ -673,14 +748,14 @@ function AgentItemGalleryPage() {
                         </p>
                       </div>
                     )}
-                    
+
                     <button
                       onClick={handleBatchApprove}
                       disabled={isApproving || selectedCount === 0 || !allSelectedHavePrice}
                       className="w-full px-6 py-4 bg-green-600 text-white rounded-lg font-bold hover:bg-green-700 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                       style={{ fontFamily: 'Inter, sans-serif' }}
                     >
-                      {isApproving ? 'Approving...' : `✓ Approve ${selectedCount} Selected Item${selectedCount !== 1 ? 's' : ''}`}
+                      {isApproving ? 'Approving...' : `✓ Approve ${selectedCount} Item${selectedCount !== 1 ? 's' : ''}`}
                     </button>
 
                     {!allSelectedHavePrice && selectedCount > 0 && (
@@ -703,7 +778,7 @@ function AgentItemGalleryPage() {
                               {approveError}
                             </p>
                           </div>
-                          <button 
+                          <button
                             onClick={() => setApproveError('')}
                             className="text-red-400 hover:text-red-600 font-bold"
                           >
@@ -719,38 +794,53 @@ function AgentItemGalleryPage() {
           </div>
         )}
 
-        {item.photos && item.photos.length > 0 && 
-         item.status === 'draft' && 
-         !item.ai && 
-         !item.approvedItems?.length && 
-         !hasUnanalyzedPhotos && (
-          <div>
-            <h3 className="text-lg font-bold text-[#101010] mb-4" style={{ fontFamily: 'Playfair Display, serif' }}>
-              Uploaded Photos
-            </h3>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {item.photos.map((photo, idx) => (
-                <div key={idx} className="relative group">
-                  <img 
-                    src={photo} 
-                    alt={`Photo ${idx + 1}`} 
-                    className="w-full h-64 object-cover rounded-lg border-2 border-gray-200 hover:border-[#e6c35a] transition-all cursor-pointer"
-                    onClick={() => window.open(photo, '_blank')}
-                  />
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all rounded-lg pointer-events-none"></div>
-                </div>
-              ))}
+        {item.photoGroups && item.photoGroups.length > 0 &&
+          item.status === 'draft' &&
+          !item.ai &&
+          !item.approvedItems?.length &&
+          !hasUnanalyzedGroups && (
+            <div>
+              <h3 className="text-lg font-bold text-[#101010] mb-4" style={{ fontFamily: 'Playfair Display, serif' }}>
+                Uploaded Items
+              </h3>
+              <div className="space-y-6">
+                {item.photoGroups.map((group) => {
+                  const groupPhotos = getPhotosForGroup(group)
+                  return (
+                    <div key={group.itemNumber} className="bg-white p-6 rounded-xl shadow-md">
+                      <h4 className="text-lg font-bold text-[#101010] mb-4" style={{ fontFamily: 'Playfair Display, serif' }}>
+                        {group.title}
+                      </h4>
+                      <p className="text-sm text-[#707072] mb-4" style={{ fontFamily: 'Inter, sans-serif' }}>
+                        {group.photoCount} photo(s)
+                      </p>
+                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                        {groupPhotos.map((photo, photoIdx) => (
+                          <div key={photoIdx} className="relative group">
+                            <img
+                              src={photo}
+                              alt={`${group.title} - Photo ${photoIdx + 1}`}
+                              className="w-full h-48 object-cover rounded-lg border-2 border-gray-200 hover:border-[#e6c35a] transition-all cursor-pointer"
+                              onClick={() => window.open(photo, '_blank')}
+                            />
+                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all rounded-lg pointer-events-none"></div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {item.photos && item.photos.length === 0 && (
+        {(!item.photoGroups || item.photoGroups.length === 0) && (
           <div className="bg-white p-12 rounded-xl shadow-md text-center">
             <svg className="mx-auto w-16 h-16 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
             <p className="text-[#707072] mb-4" style={{ fontFamily: 'Inter, sans-serif' }}>
-              No photos uploaded yet
+              No items uploaded yet
             </p>
             {canUpload && (
               <button
@@ -758,7 +848,7 @@ function AgentItemGalleryPage() {
                 className="px-8 py-3 bg-[#e6c35a] text-black rounded-lg font-bold hover:bg-[#edd88c] transition-all shadow-md"
                 style={{ fontFamily: 'Inter, sans-serif' }}
               >
-                Upload Photos
+                Add New Item
               </button>
             )}
           </div>
@@ -777,22 +867,17 @@ function AgentItemGalleryPage() {
                   </div>
                 </div>
               </div>
-              
+
               <h3 className="text-2xl font-bold text-[#101010] mb-3" style={{ fontFamily: 'Playfair Display, serif' }}>
                 AI Analysis in Progress
               </h3>
-              
+
               <div className="bg-white/60 rounded-lg p-4 mb-4 border-2 border-[#e6c35a]/30">
                 <p className="text-base text-[#101010] font-semibold mb-2" style={{ fontFamily: 'Inter, sans-serif' }}>
-                  Analyzing {unanalyzedPhotos.length} photo{unanalyzedPhotos.length !== 1 ? 's' : ''}...
+                  Analyzing {unanalyzedGroups.length} item{unanalyzedGroups.length !== 1 ? 's' : ''}...
                 </p>
                 <p className="text-sm text-[#707072]" style={{ fontFamily: 'Inter, sans-serif' }}>
-                  Our AI is examining each image individually to generate accurate descriptions, categories, and pricing estimates.
-                  {item.analyzedPhotoIndices && item.analyzedPhotoIndices.length > 0 && (
-                    <span className="block mt-1 text-green-700 font-semibold">
-                      {item.analyzedPhotoIndices.length} photo(s) already analyzed and will be skipped.
-                    </span>
-                  )}
+                  Our AI is examining each item to generate accurate descriptions, categories, and pricing estimates.
                 </p>
               </div>
 
@@ -801,9 +886,7 @@ function AgentItemGalleryPage() {
                   ⚠️ Please Do Not Close This Tab
                 </p>
                 <p className="text-xs text-[#707072]" style={{ fontFamily: 'Inter, sans-serif' }}>
-                  {unanalyzedPhotos.length > 20 
-                    ? 'Large photo batches may take several minutes to analyze.'
-                    : 'This process typically takes 30-60 seconds.'}
+                  This process typically takes 30-60 seconds.
                 </p>
               </div>
 
@@ -882,7 +965,7 @@ function AgentItemGalleryPage() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full p-6">
             <h3 className="text-xl font-bold text-[#101010] mb-4" style={{ fontFamily: 'Playfair Display, serif' }}>
-              Upload More Photos
+              Add New Item
             </h3>
 
             {uploadError && (
@@ -907,9 +990,15 @@ function AgentItemGalleryPage() {
               </div>
             ) : (
               <>
+                <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-100">
+                  <p className="text-xs text-blue-800" style={{ fontFamily: 'Inter, sans-serif' }}>
+                    💡 <strong>Agent Upload:</strong> You're uploading on behalf of the client. These photos will be grouped together as a new item. Upload at least 4 clear photos showing different angles for best AI results.
+                  </p>
+                </div>
+
                 <div className="mb-6">
                   <label className="block text-sm font-semibold text-[#101010] mb-2" style={{ fontFamily: 'Inter, sans-serif' }}>
-                    Select Photos (Max 10 at a time)
+                    Select Photos for This Item
                   </label>
                   <input
                     type="file"
@@ -920,8 +1009,8 @@ function AgentItemGalleryPage() {
                     style={{ fontFamily: 'Inter, sans-serif' }}
                   />
                   {selectedFiles.length > 0 && (
-                    <p className={`text-sm mt-2 ${selectedFiles.length === 10 ? 'text-[#e6c35a] font-semibold' : 'text-[#707072]'}`} style={{ fontFamily: 'Inter, sans-serif' }}>
-                      {selectedFiles.length} / 10 file(s) selected
+                    <p className="text-sm mt-2 text-[#707072]" style={{ fontFamily: 'Inter, sans-serif' }}>
+                      {selectedFiles.length} file(s) selected
                     </p>
                   )}
                 </div>
@@ -933,9 +1022,9 @@ function AgentItemGalleryPage() {
                     </p>
                     <div className="grid grid-cols-3 gap-2">
                       {Array.from(selectedFiles).slice(0, 6).map((file, i) => (
-                        <img 
+                        <img
                           key={i}
-                          src={URL.createObjectURL(file)} 
+                          src={URL.createObjectURL(file)}
                           alt={`Preview ${i + 1}`}
                           className="w-full h-24 object-cover rounded-lg"
                         />

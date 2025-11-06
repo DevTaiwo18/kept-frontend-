@@ -64,11 +64,6 @@ function Footer() {
                 </Link>
               </p>
               <p>
-                <Link to="/browse" className="hover:text-[#edd88c] transition-colors">
-                  Browse Items
-                </Link>
-              </p>
-              <p>
                 <Link to="/about" className="hover:text-[#edd88c] transition-colors">
                   About Us
                 </Link>

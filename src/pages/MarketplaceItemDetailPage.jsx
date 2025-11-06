@@ -16,6 +16,8 @@ function MarketplaceItemDetailPage() {
   const [cartLoading, setCartLoading] = useState(false)
   const [notification, setNotification] = useState(null)
   const [isInCart, setIsInCart] = useState(false)
+  const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0)
+  const [isZoomed, setIsZoomed] = useState(false)
 
   useEffect(() => {
     const fetchItem = async () => {
@@ -23,6 +25,7 @@ function MarketplaceItemDetailPage() {
       try {
         const response = await getMarketplaceItem(id)
         setItem(response)
+        setCurrentPhotoIndex(0)
       } catch (error) {
         navigate('/browse')
       } finally {
@@ -36,7 +39,7 @@ function MarketplaceItemDetailPage() {
         const response = await getRelatedMarketplaceItems(id)
         setRelatedItems(response.items || [])
       } catch (error) {
-        
+        console.error('Failed to fetch related items:', error)
       } finally {
         setRelatedLoading(false)
       }
@@ -117,6 +120,43 @@ function MarketplaceItemDetailPage() {
     }).format(price || 0)
   }
 
+  const getAllPhotos = () => {
+    if (item?.photos && item.photos.length > 0) return item.photos
+    if (item?.photo) return [item.photo]
+    return []
+  }
+
+  const allPhotos = getAllPhotos()
+  const photoCount = allPhotos.length
+  const currentPhoto = allPhotos[currentPhotoIndex] || null
+
+  const handlePrevPhoto = () => {
+    setCurrentPhotoIndex((prev) => (prev === 0 ? photoCount - 1 : prev - 1))
+  }
+
+  const handleNextPhoto = () => {
+    setCurrentPhotoIndex((prev) => (prev === photoCount - 1 ? 0 : prev + 1))
+  }
+
+  const handleThumbnailClick = (index) => {
+    setCurrentPhotoIndex(index)
+  }
+
+  const handleImageClick = () => {
+    setIsZoomed(!isZoomed)
+  }
+
+  useEffect(() => {
+    const handleKeyPress = (e) => {
+      if (e.key === 'ArrowLeft') handlePrevPhoto()
+      if (e.key === 'ArrowRight') handleNextPhoto()
+      if (e.key === 'Escape' && isZoomed) setIsZoomed(false)
+    }
+
+    window.addEventListener('keydown', handleKeyPress)
+    return () => window.removeEventListener('keydown', handleKeyPress)
+  }, [photoCount, isZoomed])
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-white to-[#F8F5F0]">
@@ -145,8 +185,52 @@ function MarketplaceItemDetailPage() {
       {notification && (
         <div className={`fixed top-4 right-4 z-50 px-6 py-3 rounded-lg shadow-lg ${
           notification.type === 'success' ? 'bg-green-500' : 'bg-red-500'
-        } text-white font-semibold`} style={{ fontFamily: 'Inter, sans-serif' }}>
+        } text-white font-semibold animate-slide-in`} style={{ fontFamily: 'Inter, sans-serif' }}>
           {notification.message}
+        </div>
+      )}
+
+      {isZoomed && (
+        <div 
+          className="fixed inset-0 bg-black/95 z-50 flex items-center justify-center p-4"
+          onClick={() => setIsZoomed(false)}
+        >
+          <button
+            onClick={() => setIsZoomed(false)}
+            className="absolute top-4 right-4 w-10 h-10 bg-white/20 hover:bg-white/30 text-white rounded-full flex items-center justify-center transition-all"
+          >
+            ✕
+          </button>
+          
+          {photoCount > 1 && (
+            <>
+              <button
+                onClick={(e) => { e.stopPropagation(); handlePrevPhoto(); }}
+                className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/20 hover:bg-white/30 text-white rounded-full flex items-center justify-center text-2xl"
+              >
+                ←
+              </button>
+              <button
+                onClick={(e) => { e.stopPropagation(); handleNextPhoto(); }}
+                className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/20 hover:bg-white/30 text-white rounded-full flex items-center justify-center text-2xl"
+              >
+                →
+              </button>
+            </>
+          )}
+          
+          <img
+            src={currentPhoto}
+            alt={item.title}
+            className="max-w-full max-h-full object-contain"
+            onClick={(e) => e.stopPropagation()}
+          />
+          
+          {photoCount > 1 && (
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full text-white font-semibold">
+              {currentPhotoIndex + 1} / {photoCount}
+            </div>
+          )}
         </div>
       )}
       
@@ -161,24 +245,92 @@ function MarketplaceItemDetailPage() {
         </button>
 
         <div className="grid md:grid-cols-2 gap-8 mb-12">
-          <div className="bg-white rounded-xl overflow-hidden shadow-lg">
-            <img
-              src={item.photo}
-              alt={item.title}
-              className="w-full h-full object-cover"
-              onError={(e) => {
-                e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect fill="%23ddd" width="100" height="100"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="%23999"%3ENo Image%3C/text%3E%3C/svg%3E'
-              }}
-            />
+          <div className="space-y-4">
+            <div className="relative bg-white rounded-xl overflow-hidden shadow-lg group">
+              {currentPhoto ? (
+                <img
+                  src={currentPhoto}
+                  alt={item.title}
+                  className="w-full h-[500px] object-contain bg-gray-50 cursor-zoom-in"
+                  onClick={handleImageClick}
+                  onError={(e) => {
+                    e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect fill="%23ddd" width="100" height="100"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="%23999"%3ENo Image%3C/text%3E%3C/svg%3E'
+                  }}
+                />
+              ) : (
+                <div className="w-full h-[500px] flex items-center justify-center bg-gray-200">
+                  <span className="text-gray-400" style={{ fontFamily: 'Inter, sans-serif' }}>No Image</span>
+                </div>
+              )}
+
+              <button
+                onClick={handleImageClick}
+                className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm text-[#101010] px-3 py-2 rounded-lg text-sm font-semibold opacity-0 group-hover:opacity-100 transition-all hover:bg-white"
+                style={{ fontFamily: 'Inter, sans-serif' }}
+              >
+                🔍 Zoom
+              </button>
+
+              {photoCount > 1 && (
+                <>
+                  <button
+                    onClick={handlePrevPhoto}
+                    className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-black/60 hover:bg-black/80 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 z-10 text-xl"
+                    aria-label="Previous photo"
+                  >
+                    ←
+                  </button>
+                  <button
+                    onClick={handleNextPhoto}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-black/60 hover:bg-black/80 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 z-10 text-xl"
+                    aria-label="Next photo"
+                  >
+                    →
+                  </button>
+
+                  <div className="absolute top-4 left-4 bg-black/70 backdrop-blur-sm text-white px-3 py-1 rounded-full text-sm font-semibold">
+                    {currentPhotoIndex + 1} / {photoCount}
+                  </div>
+                </>
+              )}
+            </div>
+
+            {photoCount > 1 && (
+              <div className="grid grid-cols-5 gap-2">
+                {allPhotos.map((photo, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => handleThumbnailClick(idx)}
+                    className={`relative bg-white rounded-lg overflow-hidden border-2 transition-all ${
+                      idx === currentPhotoIndex ? 'border-[#e6c35a] ring-2 ring-[#e6c35a]' : 'border-gray-200 hover:border-[#e6c35a]'
+                    }`}
+                  >
+                    <img
+                      src={photo}
+                      alt={`${item.title} - Photo ${idx + 1}`}
+                      className="w-full h-20 object-cover"
+                      onError={(e) => {
+                        e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect fill="%23ddd" width="100" height="100"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="%23999"%3ENo Image%3C/text%3E%3C/svg%3E'
+                      }}
+                    />
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="space-y-6">
             <div>
-              {item.category && (
-                <span className="inline-block px-3 py-1 bg-[#e6c35a] text-black text-sm font-semibold rounded-full mb-3">
-                  {item.category}
+              <div className="flex items-center gap-2 mb-3">
+                {item.category && (
+                  <span className="inline-block px-3 py-1 bg-[#e6c35a] text-black text-sm font-semibold rounded-full">
+                    {item.category}
+                  </span>
+                )}
+                <span className="inline-block px-3 py-1 bg-green-100 text-green-800 text-sm font-semibold rounded-full">
+                  ✓ Available
                 </span>
-              )}
+              </div>
               <h1 
                 className="text-4xl font-bold text-[#101010] mb-4" 
                 style={{ fontFamily: 'Playfair Display, serif' }}
@@ -199,7 +351,7 @@ function MarketplaceItemDetailPage() {
             </div>
 
             {item.description && (
-              <div>
+              <div className="bg-gray-50 p-4 rounded-lg">
                 <h2 
                   className="text-xl font-bold text-[#101010] mb-3" 
                   style={{ fontFamily: 'Playfair Display, serif' }}
@@ -215,7 +367,13 @@ function MarketplaceItemDetailPage() {
               </div>
             )}
 
-            <div className="pt-6">
+            <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
+              <p className="text-sm text-blue-800" style={{ fontFamily: 'Inter, sans-serif' }}>
+                <strong>💡 Estate Sale Item:</strong> This is a unique piece from a curated estate collection. Once sold, it's gone forever.
+              </p>
+            </div>
+
+            <div className="space-y-3 pt-4">
               <button
                 onClick={handleAddToCart}
                 disabled={cartLoading}
@@ -226,8 +384,12 @@ function MarketplaceItemDetailPage() {
                 }`}
                 style={{ fontFamily: 'Inter, sans-serif' }}
               >
-                {cartLoading ? 'Processing...' : isInCart ? '✓ View in Cart' : 'Add to Cart'}
+                {cartLoading ? 'Processing...' : isInCart ? '✓ View in Cart' : '🛒 Add to Cart'}
               </button>
+              
+              <p className="text-center text-xs text-[#707072]" style={{ fontFamily: 'Inter, sans-serif' }}>
+                Questions? Contact us at support@kepthouse.com
+              </p>
             </div>
           </div>
         </div>
@@ -235,12 +397,17 @@ function MarketplaceItemDetailPage() {
         {relatedItems.length > 0 && (
           <div className="mt-16">
             <div className="flex items-center justify-between mb-8">
-              <h2 
-                className="text-3xl font-bold text-[#101010]" 
-                style={{ fontFamily: 'Playfair Display, serif' }}
-              >
-                Related Items
-              </h2>
+              <div>
+                <h2 
+                  className="text-3xl font-bold text-[#101010]" 
+                  style={{ fontFamily: 'Playfair Display, serif' }}
+                >
+                  You May Also Like
+                </h2>
+                <p className="text-[#707072] mt-1" style={{ fontFamily: 'Inter, sans-serif' }}>
+                  Similar items from our estate collection
+                </p>
+              </div>
               <Link
                 to="/browse"
                 className="text-[#e6c35a] hover:text-[#edd88c] font-semibold transition-colors"

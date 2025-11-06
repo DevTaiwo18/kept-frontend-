@@ -1,14 +1,11 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { loadStripe } from '@stripe/stripe-js'
 import { getCart, getCachedCart, removeFromCart as removeFromCartApi, clearCart as clearCartApi, onCartUpdate } from '../utils/cartApi'
 import { getAuth, onAuthUpdate } from '../utils/auth'
-import { createCheckoutSession } from '../utils/checkoutApi'
 
 function CartPage() {
   const [cart, setCart] = useState({ items: [], total: 0, count: 0 })
   const [loading, setLoading] = useState(true)
-  const [checkoutLoading, setCheckoutLoading] = useState(false)
   const [error, setError] = useState(null)
   const [showClearConfirm, setShowClearConfirm] = useState(false)
   const [auth, setAuth] = useState(getAuth())
@@ -97,29 +94,8 @@ function CartPage() {
     }
   }
 
-  const handleCheckout = async () => {
-    setCheckoutLoading(true)
-    setError(null)
-    
-    try {
-      const { sessionId, orderId } = await createCheckoutSession()
-      
-      if (!sessionId) {
-        setError('Checkout failed. Please try again.')
-        setCheckoutLoading(false)
-        return
-      }
-
-      localStorage.setItem('kept_orderId', orderId || '')
-      
-      const stripe = await loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY)
-      await stripe.redirectToCheckout({ sessionId })
-      
-    } catch (error) {
-      console.error('Checkout error:', error)
-      setError('Cart is empty or items are unavailable. Please check your cart.')
-      setCheckoutLoading(false)
-    }
+  const handleCheckout = () => {
+    navigate('/checkout')
   }
 
   if (loading) {
@@ -370,19 +346,21 @@ function CartPage() {
                   </div>
                   <div className="border-t border-[#707072]/20 pt-3">
                     <div className="flex justify-between text-xl font-bold text-[#101010]" style={{ fontFamily: 'Playfair Display, serif' }}>
-                      <span>Total</span>
+                      <span>Subtotal</span>
                       <span>{formatPrice(cartTotal)}</span>
                     </div>
+                    <p className="text-xs text-[#707072] mt-2" style={{ fontFamily: 'Inter, sans-serif' }}>
+                      Tax and shipping calculated at checkout
+                    </p>
                   </div>
                 </div>
 
                 <button
                   onClick={handleCheckout}
-                  disabled={checkoutLoading}
-                  className="w-full px-8 py-4 bg-[#e6c35a] text-black rounded-lg font-bold hover:bg-[#edd88c] transition-all shadow-lg text-lg disabled:opacity-50 disabled:cursor-not-allowed mb-3"
+                  className="w-full px-8 py-4 bg-[#e6c35a] text-black rounded-lg font-bold hover:bg-[#edd88c] transition-all shadow-lg text-lg mb-3"
                   style={{ fontFamily: 'Inter, sans-serif' }}
                 >
-                  {checkoutLoading ? 'Processing...' : 'Proceed to Checkout'}
+                  Proceed to Checkout
                 </button>
 
                 <Link

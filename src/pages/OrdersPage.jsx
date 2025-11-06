@@ -59,6 +59,26 @@ function OrdersPage() {
     }
   }
 
+  const getDeliveryBadge = (deliveryType) => {
+    if (deliveryType === 'shipping') {
+      return (
+        <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full font-semibold">
+          <span>🚚</span>
+          <span>Shipping</span>
+        </span>
+      )
+    }
+    if (deliveryType === 'pickup') {
+      return (
+        <span className="inline-flex items-center gap-1 px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded-full font-semibold">
+          <span>📦</span>
+          <span>Pickup</span>
+        </span>
+      )
+    }
+    return null
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-white to-[#F8F5F0]">
@@ -153,6 +173,7 @@ function OrdersPage() {
                         >
                           {order.paymentStatus.toUpperCase()}
                         </span>
+                        {order.deliveryDetails?.type && getDeliveryBadge(order.deliveryDetails.type)}
                       </div>
                       <p 
                         className="text-xs sm:text-sm text-[#707072]" 
@@ -185,12 +206,9 @@ function OrdersPage() {
                       >
                         {order.items?.length || 0} {order.items?.length === 1 ? 'Item' : 'Items'}
                       </p>
-                      {order.deliveryDetails && (
-                        <span className="flex items-center gap-1 text-xs text-green-600 font-semibold">
-                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                          </svg>
-                          <span style={{ fontFamily: 'Inter, sans-serif' }}>Delivery Scheduled</span>
+                      {order.fulfillmentStatus && (
+                        <span className="text-xs text-[#707072] font-medium capitalize" style={{ fontFamily: 'Inter, sans-serif' }}>
+                          {order.fulfillmentStatus}
                         </span>
                       )}
                     </div>
