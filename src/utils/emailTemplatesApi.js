@@ -65,6 +65,13 @@ export const toggleEmailTemplate = async (key, isActive) => {
   return result
 }
 
+export const sendTemplateEmail = async (key, data) => {
+  return apiCall(`/email-templates/${key}/send`, {
+    method: 'POST',
+    body: JSON.stringify(data)
+  })
+}
+
 export const getCachedTemplates = () => {
   return templateCache
 }

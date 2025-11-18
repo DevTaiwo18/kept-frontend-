@@ -11,9 +11,12 @@
   },
   "dependencies": {
     "@stripe/stripe-js": "^7.9.0",
+    "pdfjs-dist": "^5.4.394",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
-    "react-router-dom": "^7.9.3"
+    "react-pdf": "^10.2.0",
+    "react-router-dom": "^7.9.3",
+    "react-signature-canvas": "^1.1.0-alpha.2"
   },
   "devDependencies": {
     "@eslint/js": "^9.36.0",

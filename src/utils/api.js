@@ -3,13 +3,18 @@ const API_URL = 'http://localhost:4000/api'
 export const apiCall = async (endpoint, options = {}) => {
   const token = localStorage.getItem('kh_token')
   
+  const headers = {
+    ...(token && { 'Authorization': `Bearer ${token}` }),
+    ...options.headers,
+  }
+
+  if (!(options.body instanceof FormData)) {
+    headers['Content-Type'] = 'application/json'
+  }
+
   const config = {
     ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...(token && { 'Authorization': `Bearer ${token}` }),
-      ...options.headers,
-    },
+    headers,
   }
 
   const response = await fetch(`${API_URL}${endpoint}`, config)

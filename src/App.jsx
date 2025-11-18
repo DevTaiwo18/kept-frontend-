@@ -32,6 +32,7 @@ import OrderDetailPage from './pages/OrderDetailPage'
 import CheckoutPage from './pages/CheckoutPage'
 import AdminOrdersPage from './pages/AdminOrdersPage'
 import EmailTemplatesPage from './pages/EmailTemplatesPage'
+import ClientWaitingPage from './pages/Clientwaitingpage'
 
 function App() {
   return (
@@ -57,6 +58,15 @@ function App() {
           element={
             <ProtectedRoute allowedRoles={['client']}>
               <ClientNewProjectPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/client/waiting/:id"
+          element={
+            <ProtectedRoute allowedRoles={['client']}>
+              <ClientWaitingPage />
             </ProtectedRoute>
           }
         />

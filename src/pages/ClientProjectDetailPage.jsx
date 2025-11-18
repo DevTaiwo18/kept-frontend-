@@ -31,7 +31,7 @@ function ClientProjectDetailPage() {
   useEffect(() => {
     loadProject()
     loadItems()
-    
+
     const paymentStatus = searchParams.get('payment')
     if (paymentStatus === 'success') {
       setShowSuccessModal(true)
@@ -43,6 +43,12 @@ function ClientProjectDetailPage() {
       setIsLoading(true)
       setError('')
       const data = await getClientJobById(id)
+
+      if (!data.job?.depositPaidAt) {
+        navigate(`/client/waiting/${id}`)
+        return
+      }
+
       setProject(data.job)
     } catch (err) {
       setError(err.message || 'Failed to load project details')
@@ -173,7 +179,7 @@ function ClientProjectDetailPage() {
 
   const calculateKeptHouseCommission = (grossSales) => {
     let commission = 0
-    
+
     if (grossSales <= 7500) {
       commission = grossSales * 0.50
     } else if (grossSales <= 20000) {
@@ -181,7 +187,7 @@ function ClientProjectDetailPage() {
     } else {
       commission = (7500 * 0.50) + (12500 * 0.40) + ((grossSales - 20000) * 0.30)
     }
-    
+
     return Math.round(commission * 100) / 100
   }
 
@@ -190,7 +196,7 @@ function ClientProjectDetailPage() {
     const serviceFee = (project?.serviceFee && project.serviceFee > 0) ? project.serviceFee : 0
     const hauling = project?.finance?.haulingCost || 0
     const depositPaid = (project?.depositAmount && project.depositAmount > 0 && project.depositPaidAt) ? project.depositAmount : 0
-    
+
     const keptHouseCommission = calculateKeptHouseCommission(gross)
     const net = gross - serviceFee - keptHouseCommission - hauling + depositPaid
 
@@ -460,7 +466,7 @@ function ClientProjectDetailPage() {
               {item.photoGroups.slice(0, 3).map((group) => {
                 const firstPhotoIndex = group.startIndex
                 const photoUrl = item.photos[firstPhotoIndex]
-                
+
                 return (
                   <div
                     key={group.itemNumber}
@@ -495,16 +501,15 @@ function ClientProjectDetailPage() {
                           {group.title}
                         </h4>
                         <span
-                          className={`px-2 sm:px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap ${
-                            item.status === 'approved' ? 'bg-green-100 text-green-800' :
-                            item.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                            'bg-blue-100 text-blue-800'
-                          }`}
+                          className={`px-2 sm:px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap ${item.status === 'approved' ? 'bg-green-100 text-green-800' :
+                              item.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                                'bg-blue-100 text-blue-800'
+                            }`}
                           style={{ fontFamily: 'Inter, sans-serif' }}
                         >
                           {item.status === 'draft' ? 'Awaiting Review' :
                             item.status === 'approved' ? 'Approved' :
-                            item.status}
+                              item.status}
                         </span>
                       </div>
                       <p className="text-xs sm:text-sm text-[#707072]" style={{ fontFamily: 'Inter, sans-serif' }}>

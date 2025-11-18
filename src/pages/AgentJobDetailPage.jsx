@@ -375,33 +375,34 @@ function AgentJobDetailPage() {
             </p>
           </div>
 
-          {job.status === 'awaiting_deposit' && job.serviceFee > 0 && (
-            <div className="w-full lg:w-auto order-first lg:order-none mb-4 lg:mb-0">
-              <div className="px-4 py-3 bg-yellow-50 border border-yellow-400 text-yellow-800 rounded-lg text-center flex items-center h-[46px]">
-                <p className="text-xs w-full" style={{ fontFamily: 'Inter, sans-serif' }}>
-                  Service Fee: <span className="font-bold">{formatCurrency(job.serviceFee)}</span>
-                </p>
-              </div>
-            </div>
-          )}
-
           <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto shrink-0">
-            {job.status === 'awaiting_deposit' && !job.serviceFee && (
+            {!job.welcomeEmailSentAt && (
               <button
-                onClick={() => setShowDepositModal(true)}
+                onClick={() => navigate('/admin/email-templates', { state: { job, templateKey: 'welcome' } })}
                 className="px-4 py-3 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 transition-all shadow-md text-sm whitespace-nowrap"
                 style={{ fontFamily: 'Inter, sans-serif' }}
               >
-                Request Deposit
+                📧 Send Welcome Email
               </button>
             )}
-            <button
-              onClick={() => navigate('/admin/email-templates', { state: { job } })}
-              className="px-6 py-3 bg-white border-2 border-[#e6c35a] text-black rounded-lg font-bold hover:bg-[#e6c35a] transition-all shadow-md whitespace-nowrap"
-              style={{ fontFamily: 'Inter, sans-serif' }}
-            >
-              Send Email
-            </button>
+            {job.welcomeEmailSentAt && job.contractSignedByClient && !job.serviceFee && (
+              <button
+                onClick={() => setShowDepositModal(true)}
+                className="px-4 py-3 bg-yellow-600 text-white rounded-lg font-bold hover:bg-yellow-700 transition-all shadow-md text-sm whitespace-nowrap"
+                style={{ fontFamily: 'Inter, sans-serif' }}
+              >
+                💰 Request Deposit
+              </button>
+            )}
+            {job.welcomeEmailSentAt && (
+              <button
+                onClick={() => navigate('/admin/email-templates', { state: { job } })}
+                className="px-6 py-3 bg-white border-2 border-[#e6c35a] text-black rounded-lg font-bold hover:bg-[#e6c35a] transition-all shadow-md whitespace-nowrap"
+                style={{ fontFamily: 'Inter, sans-serif' }}
+              >
+                Send Email
+              </button>
+            )}
             <button
               onClick={() => setShowStatusModal(true)}
               className="px-6 py-3 bg-[#e6c35a] text-black rounded-lg font-bold hover:bg-[#edd88c] transition-all shadow-md whitespace-nowrap"
@@ -412,19 +413,92 @@ function AgentJobDetailPage() {
           </div>
         </div>
 
-        {job.status === 'awaiting_deposit' && (
+        {!job.welcomeEmailSentAt && (
+          <div className="mb-6 p-4 bg-blue-50 border-l-4 border-blue-500 rounded-lg">
+            <div className="flex items-start gap-3">
+              <svg className="w-6 h-6 text-blue-600 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+              </svg>
+              <div>
+                <h3 className="text-sm font-bold text-blue-900 mb-1" style={{ fontFamily: 'Inter, sans-serif' }}>
+                  📧 Send Welcome Email First
+                </h3>
+                <p className="text-sm text-blue-800" style={{ fontFamily: 'Inter, sans-serif' }}>
+                  Click "Send Welcome Email" above to send a personalized welcome email with contract to the client
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {job.welcomeEmailSentAt && !job.contractFileUrl && (
+          <div className="mb-6 p-4 bg-purple-50 border-l-4 border-purple-500 rounded-lg">
+            <div className="flex items-start gap-3">
+              <svg className="w-6 h-6 text-purple-600 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd" />
+              </svg>
+              <div>
+                <h3 className="text-sm font-bold text-purple-900 mb-1" style={{ fontFamily: 'Inter, sans-serif' }}>
+                  📄 Contract Upload Needed
+                </h3>
+                <p className="text-sm text-purple-800" style={{ fontFamily: 'Inter, sans-serif' }}>
+                  Agent needs to upload the contract agreement via the email system
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {job.contractFileUrl && !job.contractSignedByClient && (
+          <div className="mb-6 p-4 bg-amber-50 border-l-4 border-amber-500 rounded-lg">
+            <div className="flex items-start gap-3">
+              <svg className="w-6 h-6 text-amber-600 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+              </svg>
+              <div>
+                <h3 className="text-sm font-bold text-amber-900 mb-1" style={{ fontFamily: 'Inter, sans-serif' }}>
+                  ⏳ Awaiting Client Signature
+                </h3>
+                <p className="text-sm text-amber-800" style={{ fontFamily: 'Inter, sans-serif' }}>
+                  Waiting for client to review and sign the contract agreement
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {job.contractSignedByClient && !job.serviceFee && (
           <div className="mb-6 p-4 bg-yellow-50 border-l-4 border-yellow-500 rounded-lg">
             <div className="flex items-start gap-3">
-              <span className="text-2xl">⏳</span>
+              <svg className="w-6 h-6 text-yellow-600 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clipRule="evenodd" />
+              </svg>
               <div>
                 <h3 className="text-sm font-bold text-yellow-900 mb-1" style={{ fontFamily: 'Inter, sans-serif' }}>
-                  Awaiting Initial Deposit
+                  💰 Request Initial Deposit
                 </h3>
                 <p className="text-sm text-yellow-800" style={{ fontFamily: 'Inter, sans-serif' }}>
-                  {job.serviceFee ?
-                    `Deposit of ${formatCurrency(job.depositAmount || 0)} requested. Client needs to complete payment before project can proceed.` :
-                    'Request an initial deposit from the client to activate this project.'
-                  }
+                  Set service fee and deposit amount to activate this project
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {job.serviceFee > 0 && !job.depositPaidAt && (
+          <div className="mb-6 p-4 bg-green-50 border-l-4 border-green-500 rounded-lg">
+            <div className="flex items-start gap-3">
+              <svg className="w-6 h-6 text-green-600 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+              </svg>
+              <div>
+                <h3 className="text-sm font-bold text-green-900 mb-1" style={{ fontFamily: 'Inter, sans-serif' }}>
+                  ✓ Awaiting Client Payment
+                </h3>
+                <p className="text-sm text-green-800" style={{ fontFamily: 'Inter, sans-serif' }}>
+                  Deposit of {formatCurrency(job.depositAmount)} requested. Waiting for client to complete payment.
                 </p>
               </div>
             </div>
@@ -543,30 +617,38 @@ function AgentJobDetailPage() {
                   Financial Summary
                 </h3>
                 <div className="space-y-3">
-                  <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                    <span className="text-sm text-[#707072]" style={{ fontFamily: 'Inter, sans-serif' }}>Gross Sales</span>
-                    <span className="text-sm font-bold text-[#101010]" style={{ fontFamily: 'Inter, sans-serif' }}>
-                      {formatCurrency(financials.gross)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                    <span className="text-sm text-[#707072]" style={{ fontFamily: 'Inter, sans-serif' }}>Service Fee</span>
-                    <span className="text-sm font-bold text-red-600" style={{ fontFamily: 'Inter, sans-serif' }}>
-                      -{formatCurrency(financials.serviceFee)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                    <span className="text-sm text-[#707072]" style={{ fontFamily: 'Inter, sans-serif' }}>Kept House Commission</span>
-                    <span className="text-sm font-bold text-red-600" style={{ fontFamily: 'Inter, sans-serif' }}>
-                      -{formatCurrency(financials.keptHouseCommission)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                    <span className="text-sm text-[#707072]" style={{ fontFamily: 'Inter, sans-serif' }}>Hauling Cost</span>
-                    <span className="text-sm font-bold text-red-600" style={{ fontFamily: 'Inter, sans-serif' }}>
-                      -{formatCurrency(financials.hauling)}
-                    </span>
-                  </div>
+                  {financials.gross > 0 && (
+                    <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                      <span className="text-sm text-[#707072]" style={{ fontFamily: 'Inter, sans-serif' }}>Gross Sales</span>
+                      <span className="text-sm font-bold text-[#101010]" style={{ fontFamily: 'Inter, sans-serif' }}>
+                        {formatCurrency(financials.gross)}
+                      </span>
+                    </div>
+                  )}
+                  {financials.serviceFee > 0 && (
+                    <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                      <span className="text-sm text-[#707072]" style={{ fontFamily: 'Inter, sans-serif' }}>Service Fee</span>
+                      <span className="text-sm font-bold text-red-600" style={{ fontFamily: 'Inter, sans-serif' }}>
+                        -{formatCurrency(financials.serviceFee)}
+                      </span>
+                    </div>
+                  )}
+                  {financials.keptHouseCommission > 0 && (
+                    <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                      <span className="text-sm text-[#707072]" style={{ fontFamily: 'Inter, sans-serif' }}>Kept House Commission</span>
+                      <span className="text-sm font-bold text-red-600" style={{ fontFamily: 'Inter, sans-serif' }}>
+                        -{formatCurrency(financials.keptHouseCommission)}
+                      </span>
+                    </div>
+                  )}
+                  {financials.hauling > 0 && (
+                    <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                      <span className="text-sm text-[#707072]" style={{ fontFamily: 'Inter, sans-serif' }}>Hauling Cost</span>
+                      <span className="text-sm font-bold text-red-600" style={{ fontFamily: 'Inter, sans-serif' }}>
+                        -{formatCurrency(financials.hauling)}
+                      </span>
+                    </div>
+                  )}
                   {financials.depositPaid > 0 && (
                     <div className="flex justify-between items-center py-2 border-b border-gray-100">
                       <span className="text-sm text-[#707072]" style={{ fontFamily: 'Inter, sans-serif' }}>Deposit Paid</span>
@@ -575,12 +657,21 @@ function AgentJobDetailPage() {
                       </span>
                     </div>
                   )}
-                  <div className="flex justify-between items-center py-3 bg-[#e6c35a]/10 -mx-6 px-6 mt-2">
-                    <span className="text-base font-bold text-[#101010]" style={{ fontFamily: 'Inter, sans-serif' }}>Net Payout</span>
-                    <span className="text-base font-bold text-[#101010]" style={{ fontFamily: 'Inter, sans-serif' }}>
-                      {formatCurrency(financials.net)}
-                    </span>
-                  </div>
+                  {(financials.gross > 0 || financials.serviceFee > 0 || financials.keptHouseCommission > 0 || financials.hauling > 0 || financials.depositPaid > 0) && (
+                    <div className="flex justify-between items-center py-3 bg-[#e6c35a]/10 -mx-6 px-6 mt-2">
+                      <span className="text-base font-bold text-[#101010]" style={{ fontFamily: 'Inter, sans-serif' }}>Net Payout</span>
+                      <span className="text-base font-bold text-[#101010]" style={{ fontFamily: 'Inter, sans-serif' }}>
+                        {formatCurrency(financials.net)}
+                      </span>
+                    </div>
+                  )}
+                  {financials.gross === 0 && financials.serviceFee === 0 && financials.keptHouseCommission === 0 && financials.hauling === 0 && financials.depositPaid === 0 && (
+                    <div className="text-center py-6">
+                      <p className="text-sm text-[#707072]" style={{ fontFamily: 'Inter, sans-serif' }}>
+                        No financial data available yet
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
