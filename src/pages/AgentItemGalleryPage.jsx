@@ -61,7 +61,11 @@ function AgentItemGalleryPage() {
             category: aiItem.category || '',
             priceLow: aiItem.priceLow || '',
             priceHigh: aiItem.priceHigh || '',
-            price: aiItem.price || ''
+            price: aiItem.price || '',
+            dimensions: aiItem.dimensions || { length: '', width: '', height: '', unit: 'inches' },
+            weight: aiItem.weight || { value: '', unit: 'lbs' },
+            material: aiItem.material || '',
+            tags: aiItem.tags || []
           }
           selected[aiItem.itemNumber] = false
         })
@@ -112,6 +116,42 @@ function AgentItemGalleryPage() {
       [itemNumber]: {
         ...prev[itemNumber],
         [field]: value
+      }
+    }))
+  }
+
+  const handleEditDimension = (itemNumber, dimension, value) => {
+    setEditedItems(prev => ({
+      ...prev,
+      [itemNumber]: {
+        ...prev[itemNumber],
+        dimensions: {
+          ...prev[itemNumber].dimensions,
+          [dimension]: value
+        }
+      }
+    }))
+  }
+
+  const handleEditWeight = (itemNumber, field, value) => {
+    setEditedItems(prev => ({
+      ...prev,
+      [itemNumber]: {
+        ...prev[itemNumber],
+        weight: {
+          ...prev[itemNumber].weight,
+          [field]: value
+        }
+      }
+    }))
+  }
+
+  const handleEditTags = (itemNumber, tags) => {
+    setEditedItems(prev => ({
+      ...prev,
+      [itemNumber]: {
+        ...prev[itemNumber],
+        tags: tags
       }
     }))
   }
@@ -367,7 +407,7 @@ function AgentItemGalleryPage() {
               ⚠️ Review AI results before approving
             </p>
             <p className="text-sm text-yellow-800" style={{ fontFamily: 'Inter, sans-serif' }}>
-              Review AI details below. Edit anything (title, category, price), then select items to approve.
+              Review AI details below. Edit anything (title, category, price, dimensions), then select items to approve.
             </p>
           </div>
         )}
@@ -430,16 +470,36 @@ function AgentItemGalleryPage() {
                             {approvedItem.description}
                           </p>
                         )}
-                        <div className="flex gap-2 items-center">
+                        <div className="flex flex-wrap gap-2 items-center mb-2">
                           {approvedItem.category && (
                             <span className="text-xs bg-[#e6c35a]/20 px-3 py-1 rounded text-[#101010] font-semibold" style={{ fontFamily: 'Inter, sans-serif' }}>
                               {approvedItem.category}
+                            </span>
+                          )}
+                          {approvedItem.material && (
+                            <span className="text-xs bg-blue-100 px-3 py-1 rounded text-blue-800 font-semibold" style={{ fontFamily: 'Inter, sans-serif' }}>
+                              {approvedItem.material}
                             </span>
                           )}
                           <span className="text-sm text-[#707072]" style={{ fontFamily: 'Inter, sans-serif' }}>
                             {photoIndices.length} photo(s)
                           </span>
                         </div>
+                        {approvedItem.dimensions && (approvedItem.dimensions.length || approvedItem.dimensions.width || approvedItem.dimensions.height) && (
+                          <p className="text-xs text-[#707072]" style={{ fontFamily: 'Inter, sans-serif' }}>
+                            📏 {approvedItem.dimensions.length || '?'}" × {approvedItem.dimensions.width || '?'}" × {approvedItem.dimensions.height || '?'}"
+                            {approvedItem.weight?.value && ` • ⚖️ ${approvedItem.weight.value} ${approvedItem.weight.unit || 'lbs'}`}
+                          </p>
+                        )}
+                        {approvedItem.tags && approvedItem.tags.length > 0 && (
+                          <div className="flex flex-wrap gap-1 mt-2">
+                            {approvedItem.tags.map((tag, i) => (
+                              <span key={i} className="text-xs bg-gray-100 px-2 py-1 rounded text-gray-700" style={{ fontFamily: 'Inter, sans-serif' }}>
+                                {tag}
+                              </span>
+                            ))}
+                          </div>
+                        )}
                       </div>
                       <div className="text-right">
                         {isSold ? (
@@ -698,7 +758,7 @@ function AgentItemGalleryPage() {
                           </button>
 
                           {expandedItem === aiItem.itemNumber && (
-                            <div className="pt-2 border-t border-gray-200 space-y-2">
+                            <div className="pt-2 border-t border-gray-200 space-y-3">
                               <div>
                                 <label className="block text-xs font-semibold text-[#707072] mb-1" style={{ fontFamily: 'Inter, sans-serif' }}>
                                   Description
@@ -711,6 +771,80 @@ function AgentItemGalleryPage() {
                                   style={{ fontFamily: 'Inter, sans-serif' }}
                                   placeholder="Item description"
                                 />
+                              </div>
+
+                              <div>
+                                <label className="block text-xs font-semibold text-[#707072] mb-1" style={{ fontFamily: 'Inter, sans-serif' }}>
+                                  Dimensions (L × W × H in inches)
+                                </label>
+                                <div className="grid grid-cols-3 gap-2">
+                                  <input
+                                    type="number"
+                                    value={editedItems[aiItem.itemNumber]?.dimensions?.length || ''}
+                                    onChange={(e) => handleEditDimension(aiItem.itemNumber, 'length', e.target.value)}
+                                    className="w-full px-2 py-2 border border-[#707072]/30 rounded-lg text-xs focus:outline-none focus:border-[#e6c35a]"
+                                    placeholder="L"
+                                  />
+                                  <input
+                                    type="number"
+                                    value={editedItems[aiItem.itemNumber]?.dimensions?.width || ''}
+                                    onChange={(e) => handleEditDimension(aiItem.itemNumber, 'width', e.target.value)}
+                                    className="w-full px-2 py-2 border border-[#707072]/30 rounded-lg text-xs focus:outline-none focus:border-[#e6c35a]"
+                                    placeholder="W"
+                                  />
+                                  <input
+                                    type="number"
+                                    value={editedItems[aiItem.itemNumber]?.dimensions?.height || ''}
+                                    onChange={(e) => handleEditDimension(aiItem.itemNumber, 'height', e.target.value)}
+                                    className="w-full px-2 py-2 border border-[#707072]/30 rounded-lg text-xs focus:outline-none focus:border-[#e6c35a]"
+                                    placeholder="H"
+                                  />
+                                </div>
+                              </div>
+
+                              <div className="grid grid-cols-2 gap-2">
+                                <div>
+                                  <label className="block text-xs font-semibold text-[#707072] mb-1" style={{ fontFamily: 'Inter, sans-serif' }}>
+                                    Weight (lbs)
+                                  </label>
+                                  <input
+                                    type="number"
+                                    value={editedItems[aiItem.itemNumber]?.weight?.value || ''}
+                                    onChange={(e) => handleEditWeight(aiItem.itemNumber, 'value', e.target.value)}
+                                    className="w-full px-3 py-2 border border-[#707072]/30 rounded-lg text-sm focus:outline-none focus:border-[#e6c35a]"
+                                    placeholder="0"
+                                  />
+                                </div>
+
+                                <div>
+                                  <label className="block text-xs font-semibold text-[#707072] mb-1" style={{ fontFamily: 'Inter, sans-serif' }}>
+                                    Material
+                                  </label>
+                                  <input
+                                    type="text"
+                                    value={editedItems[aiItem.itemNumber]?.material || ''}
+                                    onChange={(e) => handleEditItem(aiItem.itemNumber, 'material', e.target.value)}
+                                    className="w-full px-3 py-2 border border-[#707072]/30 rounded-lg text-sm focus:outline-none focus:border-[#e6c35a]"
+                                    placeholder="Wood, Metal, etc."
+                                  />
+                                </div>
+                              </div>
+
+                              <div>
+                                <label className="block text-xs font-semibold text-[#707072] mb-1" style={{ fontFamily: 'Inter, sans-serif' }}>
+                                  Tags (comma-separated)
+                                </label>
+                                <input
+                                  type="text"
+                                  value={editedItems[aiItem.itemNumber]?.tags?.join(', ') || ''}
+                                  onChange={(e) => handleEditTags(aiItem.itemNumber, e.target.value.split(',').map(t => t.trim()).filter(t => t))}
+                                  className="w-full px-3 py-2 border border-[#707072]/30 rounded-lg text-sm focus:outline-none focus:border-[#e6c35a]"
+                                  style={{ fontFamily: 'Inter, sans-serif' }}
+                                  placeholder="Mid-Century Modern, Teak, Danish Design"
+                                />
+                                <p className="text-xs text-[#707072] mt-1" style={{ fontFamily: 'Inter, sans-serif' }}>
+                                  Use specific tags like "Herman Miller" not generic like "Furniture"
+                                </p>
                               </div>
                               
                               {groupPhotos.length > 1 && (
@@ -877,7 +1011,7 @@ function AgentItemGalleryPage() {
                   Analyzing {unanalyzedGroups.length} item{unanalyzedGroups.length !== 1 ? 's' : ''}...
                 </p>
                 <p className="text-sm text-[#707072]" style={{ fontFamily: 'Inter, sans-serif' }}>
-                  Our AI is examining each item to generate accurate descriptions, categories, and pricing estimates.
+                  Our AI is examining each item to generate accurate descriptions, categories, pricing, dimensions, and smart tags.
                 </p>
               </div>
 

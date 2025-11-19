@@ -131,6 +131,35 @@ function AdminOrdersPage() {
     })
   }
 
+  const getTimeAgo = (date) => {
+    const now = new Date()
+    const orderDate = new Date(date)
+    const diffMs = now - orderDate
+    const diffMins = Math.floor(diffMs / 60000)
+    const diffHours = Math.floor(diffMs / 3600000)
+    const diffDays = Math.floor(diffMs / 86400000)
+
+    if (diffMins < 1) return 'Just now'
+    if (diffMins < 60) return `${diffMins} min${diffMins > 1 ? 's' : ''} ago`
+    if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`
+    if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`
+    return formatDate(date)
+  }
+
+  const isNewOrder = (date) => {
+    const now = new Date()
+    const orderDate = new Date(date)
+    const diffHours = (now - orderDate) / 3600000
+    return diffHours < 24
+  }
+
+  const isVeryRecentOrder = (date) => {
+    const now = new Date()
+    const orderDate = new Date(date)
+    const diffHours = (now - orderDate) / 3600000
+    return diffHours < 1
+  }
+
   const getStatusColor = (status) => {
     const colors = {
       pending: 'bg-yellow-100 text-yellow-800',
@@ -211,7 +240,7 @@ function AdminOrdersPage() {
             Order Management
           </h1>
           <p className="text-sm sm:text-base text-[#707072]" style={{ fontFamily: 'Inter, sans-serif' }}>
-            View and manage all buyer orders
+            View and manage all buyer orders • Sorted by newest first
           </p>
         </div>
 
@@ -437,11 +466,25 @@ function AdminOrdersPage() {
                   </thead>
                   <tbody className="divide-y divide-gray-200">
                     {filteredOrders.map((order) => (
-                      <tr key={order._id} className="hover:bg-[#F8F5F0] transition-colors">
+                      <tr 
+                        key={order._id} 
+                        className={`transition-colors ${
+                          isVeryRecentOrder(order.createdAt) 
+                            ? 'bg-green-50 hover:bg-green-100' 
+                            : 'hover:bg-[#F8F5F0]'
+                        }`}
+                      >
                         <td className="px-6 py-4">
-                          <p className="text-sm font-mono text-[#101010]" style={{ fontFamily: 'Inter, sans-serif' }}>
-                            #{order._id.slice(-8)}
-                          </p>
+                          <div className="flex items-center gap-2">
+                            <p className="text-sm font-mono text-[#101010]" style={{ fontFamily: 'Inter, sans-serif' }}>
+                              #{order._id.slice(-8)}
+                            </p>
+                            {isNewOrder(order.createdAt) && (
+                              <span className="px-2 py-1 bg-red-500 text-white text-xs rounded-full font-bold animate-pulse" style={{ fontFamily: 'Inter, sans-serif' }}>
+                                NEW
+                              </span>
+                            )}
+                          </div>
                         </td>
                         <td className="px-6 py-4">
                           <div>
@@ -481,7 +524,10 @@ function AdminOrdersPage() {
                           </span>
                         </td>
                         <td className="px-6 py-4">
-                          <p className="text-sm text-[#707072]" style={{ fontFamily: 'Inter, sans-serif' }}>
+                          <p className="text-sm text-[#707072] font-semibold" style={{ fontFamily: 'Inter, sans-serif' }}>
+                            {getTimeAgo(order.createdAt)}
+                          </p>
+                          <p className="text-xs text-[#707072]" style={{ fontFamily: 'Inter, sans-serif' }}>
                             {formatDate(order.createdAt)}
                           </p>
                         </td>
@@ -511,17 +557,34 @@ function AdminOrdersPage() {
 
               <div className="lg:hidden divide-y divide-gray-200">
                 {filteredOrders.map((order) => (
-                  <div key={order._id} className="p-4 hover:bg-[#F8F5F0] transition-colors">
+                  <div 
+                    key={order._id} 
+                    className={`p-4 transition-colors ${
+                      isVeryRecentOrder(order.createdAt) 
+                        ? 'bg-green-50' 
+                        : 'hover:bg-[#F8F5F0]'
+                    }`}
+                  >
                     <div className="flex justify-between items-start mb-3">
                       <div className="flex-1">
-                        <p className="text-xs font-mono text-[#707072] mb-1" style={{ fontFamily: 'Inter, sans-serif' }}>
-                          #{order._id.slice(-8)}
-                        </p>
+                        <div className="flex items-center gap-2 mb-1">
+                          <p className="text-xs font-mono text-[#707072]" style={{ fontFamily: 'Inter, sans-serif' }}>
+                            #{order._id.slice(-8)}
+                          </p>
+                          {isNewOrder(order.createdAt) && (
+                            <span className="px-2 py-0.5 bg-red-500 text-white text-xs rounded-full font-bold animate-pulse" style={{ fontFamily: 'Inter, sans-serif' }}>
+                              NEW
+                            </span>
+                          )}
+                        </div>
                         <p className="text-sm font-semibold text-[#101010] mb-1" style={{ fontFamily: 'Inter, sans-serif' }}>
                           {order.deliveryDetails?.fullName || 'N/A'}
                         </p>
                         <p className="text-xs text-[#707072]" style={{ fontFamily: 'Inter, sans-serif' }}>
                           {order.buyerEmail}
+                        </p>
+                        <p className="text-xs text-[#e6c35a] font-semibold mt-1" style={{ fontFamily: 'Inter, sans-serif' }}>
+                          {getTimeAgo(order.createdAt)}
                         </p>
                       </div>
                       <div className="flex flex-col gap-2 items-end">
@@ -608,7 +671,7 @@ function AdminOrdersPage() {
         )}
       </div>
 
-      {/* Detail Modal - REDESIGNED AND CLEANED UP */}
+      {/* Detail Modal */}
       {showDetailModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
@@ -640,13 +703,23 @@ function AdminOrdersPage() {
                 <div className="grid md:grid-cols-2 gap-4 p-4 bg-[#F8F5F0] rounded-xl">
                   <div>
                     <p className="text-xs text-[#707072] mb-1 uppercase tracking-wide" style={{ fontFamily: 'Inter, sans-serif' }}>Order ID</p>
-                    <p className="text-base font-mono font-bold text-[#101010]" style={{ fontFamily: 'Inter, sans-serif' }}>
-                      #{orderDetails._id.slice(-8).toUpperCase()}
-                    </p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-base font-mono font-bold text-[#101010]" style={{ fontFamily: 'Inter, sans-serif' }}>
+                        #{orderDetails._id.slice(-8).toUpperCase()}
+                      </p>
+                      {isNewOrder(orderDetails.createdAt) && (
+                        <span className="px-2 py-0.5 bg-red-500 text-white text-xs rounded-full font-bold" style={{ fontFamily: 'Inter, sans-serif' }}>
+                          NEW
+                        </span>
+                      )}
+                    </div>
                   </div>
                   <div>
                     <p className="text-xs text-[#707072] mb-1 uppercase tracking-wide" style={{ fontFamily: 'Inter, sans-serif' }}>Date</p>
                     <p className="text-sm font-semibold text-[#101010]" style={{ fontFamily: 'Inter, sans-serif' }}>
+                      {getTimeAgo(orderDetails.createdAt)}
+                    </p>
+                    <p className="text-xs text-[#707072]" style={{ fontFamily: 'Inter, sans-serif' }}>
                       {formatDate(orderDetails.createdAt)}
                     </p>
                   </div>

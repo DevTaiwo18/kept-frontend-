@@ -524,17 +524,38 @@ function CheckoutPage() {
                     <span>Subtotal</span>
                     <span>{formatPrice(totals.subtotal)}</span>
                   </div>
-                  {totals.deliveryFee > 0 && (
-                    <div className="flex justify-between text-[#707072]" style={{ fontFamily: 'Inter, sans-serif' }}>
-                      <span>Shipping</span>
-                      <span>{formatPrice(totals.deliveryFee)}</span>
+                  
+                  {totals.breakdown?.shipping && totals.deliveryFee > 0 && (
+                    <div className="border-l-2 border-[#e6c35a] pl-3 py-2 bg-[#e6c35a]/5 rounded">
+                      <div className="flex justify-between text-sm text-[#707072] mb-1" style={{ fontFamily: 'Inter, sans-serif' }}>
+                        <span className="flex items-center gap-1">
+                          <span>📦</span>
+                          <span>{totals.breakdown.shipping.carrier} {totals.breakdown.shipping.service}</span>
+                        </span>
+                        <span>{formatPrice(totals.breakdown.shipping.fedexRate)}</span>
+                      </div>
+                      <div className="flex justify-between text-sm text-[#707072] mb-2" style={{ fontFamily: 'Inter, sans-serif' }}>
+                        <span className="pl-5">Handling & Insurance</span>
+                        <span>{formatPrice(totals.breakdown.shipping.handlingFee)}</span>
+                      </div>
+                      <div className="flex justify-between text-[#101010] font-semibold pt-2 border-t border-[#e6c35a]/30" style={{ fontFamily: 'Inter, sans-serif' }}>
+                        <span>Shipping Total</span>
+                        <span>{formatPrice(totals.breakdown.shipping.total)}</span>
+                      </div>
+                      {totals.breakdown.shipping.estimatedDays && (
+                        <p className="text-xs text-[#707072] mt-2" style={{ fontFamily: 'Inter, sans-serif' }}>
+                          Est. delivery: {totals.breakdown.shipping.estimatedDays} business days
+                        </p>
+                      )}
                     </div>
                   )}
+                  
                   <div className="flex justify-between text-[#707072]" style={{ fontFamily: 'Inter, sans-serif' }}>
                     <span>Tax (7.8%)</span>
                     <span>{formatPrice(totals.taxAmount)}</span>
                   </div>
-                  <div className="border-t border-[#707072]/20 pt-3">
+                  
+                  <div className="border-t-2 border-[#707072]/20 pt-3 mt-4">
                     <div className="flex justify-between text-xl font-bold text-[#101010]" style={{ fontFamily: 'Playfair Display, serif' }}>
                       <span>Total</span>
                       <span className="text-[#e6c35a]">{formatPrice(totals.grandTotal)}</span>
