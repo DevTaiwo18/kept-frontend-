@@ -93,3 +93,33 @@ export const getDocuSignSigningUrl = async (jobId) => {
 export const checkDocuSignContractStatus = async (jobId) => {
   return apiCall(`/docusign/check-status/${jobId}`)
 }
+
+export const toggleOnlineSale = async (jobId) => {
+  return apiCall(`/client-jobs/${jobId}/toggle-online-sale`, {
+    method: 'PATCH'
+  })
+}
+
+export const updateSaleTimeframes = async (jobId, timeframesData) => {
+  return apiCall(`/client-jobs/${jobId}/sale-timeframes`, {
+    method: 'PUT',
+    body: JSON.stringify(timeframesData)
+  })
+}
+
+export const addHaulerVideo = async (jobId, formData) => {
+  return apiCall(`/client-jobs/${jobId}/hauler-videos`, {
+    method: 'POST',
+    body: formData  
+  })
+}
+
+export const deleteHaulerVideo = async (jobId, videoId) => {
+  return apiCall(`/client-jobs/${jobId}/hauler-videos/${videoId}`, {
+    method: 'DELETE'
+  })
+}
+
+export const getHaulerVideos = async (jobId) => {
+  return apiCall(`/client-jobs/${jobId}/hauler-videos`)
+}

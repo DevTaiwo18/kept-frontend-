@@ -71,3 +71,17 @@ export const reopenItem = async (itemId, reason) => {
     body: JSON.stringify({ reason })
   })
 }
+
+export const updateEstateSalePrice = async (itemId, itemNumber, estateSalePrice) => {
+  return apiCall(`/items/${itemId}/estate-sale-price`, {
+    method: 'PATCH',
+    body: JSON.stringify({ itemNumber, estateSalePrice })
+  })
+}
+
+export const markItemAsSold = async (itemId, itemNumber, estateSalePrice) => {
+  return apiCall(`/items/${itemId}/mark-sold`, {
+    method: 'PATCH',
+    body: JSON.stringify({ itemNumber, estateSalePrice })
+  })
+}

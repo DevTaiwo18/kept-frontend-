@@ -15,6 +15,8 @@ function ClientWaitingPage() {
   const [paymentError, setPaymentError] = useState('')
   const [isCheckingStatus, setIsCheckingStatus] = useState(false)
   const [statusMessage, setStatusMessage] = useState('')
+  const [autoCheckEnabled, setAutoCheckEnabled] = useState(false)
+  const [hasSignedConfirmation, setHasSignedConfirmation] = useState(false)
 
   const handleLogout = () => {
     clearAuth()
@@ -25,9 +27,80 @@ function ClientWaitingPage() {
     loadProject()
   }, [id])
 
+  useEffect(() => {
+    if (!project || project.contractFileUrl || project.contractSignedByClient) {
+      return
+    }
+
+    const contractPollInterval = setInterval(async () => {
+      try {
+        const data = await getClientJobById(id)
+        if (data.job?.contractFileUrl) {
+          setProject(data.job)
+          clearInterval(contractPollInterval)
+        }
+      } catch (error) {
+        console.error('Contract poll error:', error)
+      }
+    }, 10000)
+
+    return () => clearInterval(contractPollInterval)
+  }, [project, id])
+
+  useEffect(() => {
+    if (!project || !project.contractFileUrl || project.contractSignedByClient) {
+      return
+    }
+
+    const pollInterval = setInterval(async () => {
+      try {
+        const result = await checkDocuSignContractStatus(id)
+        if (result.signed) {
+          clearInterval(pollInterval)
+          setStatusMessage('✅ Contract signed!')
+          await loadProject()
+        }
+      } catch (error) {
+        console.error('Background check error:', error)
+      }
+    }, 30000)
+
+    return () => clearInterval(pollInterval)
+  }, [project, id])
+
+  useEffect(() => {
+    if (!autoCheckEnabled) return
+
+    const aggressiveInterval = setInterval(async () => {
+      try {
+        const result = await checkDocuSignContractStatus(id)
+        if (result.signed) {
+          clearInterval(aggressiveInterval)
+          setAutoCheckEnabled(false)
+          setStatusMessage('✅ Contract signed!')
+          await loadProject()
+        }
+      } catch (error) {
+        console.error('Check error:', error)
+      }
+    }, 5000)
+
+    const timeout = setTimeout(() => {
+      clearInterval(aggressiveInterval)
+      setAutoCheckEnabled(false)
+    }, 600000)
+
+    return () => {
+      clearInterval(aggressiveInterval)
+      clearTimeout(timeout)
+    }
+  }, [autoCheckEnabled, id])
+
   const loadProject = async () => {
     try {
-      setIsLoading(true)
+      if (!project) {
+        setIsLoading(true)
+      }
       setError('')
       const data = await getClientJobById(id)
       setProject(data.job)
@@ -39,7 +112,9 @@ function ClientWaitingPage() {
     } catch (err) {
       setError(err.message || 'Failed to load project details')
     } finally {
-      setIsLoading(false)
+      if (!project) {
+        setIsLoading(false)
+      }
     }
   }
 
@@ -51,12 +126,10 @@ function ClientWaitingPage() {
       const result = await checkDocuSignContractStatus(id)
       
       if (result.signed) {
-        setStatusMessage('✅ Contract signed! Refreshing page...')
-        setTimeout(() => {
-          window.location.reload()
-        }, 1500)
+        setStatusMessage('✅ Contract signed!')
+        await loadProject()
       } else {
-        setStatusMessage(`⏳ ${result.message || 'Contract not yet signed. Please sign via DocuSign email or platform.'}`)
+        setStatusMessage(`⏳ ${result.message || 'Contract not yet signed. Please complete signing via DocuSign first.'}`)
         setTimeout(() => setStatusMessage(''), 5000)
       }
     } catch (error) {
@@ -75,16 +148,7 @@ function ClientWaitingPage() {
       
       if (response.signingUrl) {
         window.open(response.signingUrl, '_blank', 'width=1000,height=800')
-        
-        const checkInterval = setInterval(async () => {
-          const data = await getClientJobById(id)
-          if (data.job?.contractSignedByClient) {
-            clearInterval(checkInterval)
-            await loadProject()
-          }
-        }, 3000)
-        
-        setTimeout(() => clearInterval(checkInterval), 300000)
+        setAutoCheckEnabled(true)
       }
     } catch (error) {
       console.error('DocuSign Error:', error)
@@ -231,32 +295,50 @@ function ClientWaitingPage() {
                       </div>
                       
                       <div className="pt-3 border-t border-gray-200">
-                        <p className="text-xs text-[#707072] mb-2" style={{ fontFamily: 'Inter, sans-serif' }}>
-                          Signed via DocuSign email? Click below to update status:
-                        </p>
-                        <button
-                          onClick={handleCheckContractStatus}
-                          disabled={isCheckingStatus}
-                          className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
-                          style={{ fontFamily: 'Inter, sans-serif' }}
-                        >
-                          {isCheckingStatus ? (
-                            <>
-                              <svg className="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
-                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                              </svg>
-                              <span>Checking Status...</span>
-                            </>
-                          ) : (
-                            <>
-                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                              </svg>
-                              <span>Refresh Contract Status</span>
-                            </>
-                          )}
-                        </button>
+                        <div className="mb-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                          <label className="flex items-start gap-3 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={hasSignedConfirmation}
+                              onChange={(e) => setHasSignedConfirmation(e.target.checked)}
+                              className="mt-1 w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                            />
+                            <div className="flex-1">
+                              <p className="text-sm font-semibold text-blue-900 mb-1" style={{ fontFamily: 'Inter, sans-serif' }}>
+                                I have signed the contract via DocuSign
+                              </p>
+                              <p className="text-xs text-blue-700" style={{ fontFamily: 'Inter, sans-serif' }}>
+                                Check this box after you've completed signing through DocuSign (email or platform)
+                              </p>
+                            </div>
+                          </label>
+                        </div>
+
+                        {hasSignedConfirmation && (
+                          <button
+                            onClick={handleCheckContractStatus}
+                            disabled={isCheckingStatus}
+                            className="w-full px-6 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
+                            style={{ fontFamily: 'Inter, sans-serif' }}
+                          >
+                            {isCheckingStatus ? (
+                              <>
+                                <svg className="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                <span>Verifying Signature...</span>
+                              </>
+                            ) : (
+                              <>
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span>Verify My Signature</span>
+                              </>
+                            )}
+                          </button>
+                        )}
                       </div>
                     </div>
                   </>

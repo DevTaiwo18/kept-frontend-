@@ -40,20 +40,20 @@ function EmailTemplatesPage() {
 
 Thank you for choosing Kept House Estate Sales! We're excited to help you with your estate sale at [Property Address].
 
-📄 IMPORTANT - Your Contract Agreement
+IMPORTANT - Your Contract Agreement
 
 I've attached your contract agreement to this email. Please review it carefully.
 
-**Ready to Sign? You Have Two Options:**
+Ready to Sign? You Have Two Options:
 
-✅ **Option 1: Sign Instantly on Our Platform (RECOMMENDED)**
+Option 1: Sign Instantly on Our Platform (RECOMMENDED)
 Sign in to your Kept House account right now and sign the contract immediately:
-👉 http://localhost:5173/login
+http://localhost:5173/login
 
-⏱️ **Option 2: Wait for DocuSign Email**
+Option 2: Wait for DocuSign Email
 You will also receive a separate email from DocuSign within the next few minutes with a signing link. This may take 5-10 minutes to arrive.
 
-**We recommend using Option 1 (our platform) for instant signing!**
+We recommend using Option 1 (our platform) for instant signing!
 
 Once you've signed the contract, we'll proceed with the next steps to activate your project.
 

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { getAuth, clearAuth } from '../utils/auth'
 import { getItemById, uploadItemPhotos } from '../utils/itemsApi'
+import { getClientJobById } from '../utils/clientJobsApi'
 import logo from '../assets/Kept House _transparent logo .png'
 
 function ClientItemGalleryPage() {
@@ -9,6 +10,7 @@ function ClientItemGalleryPage() {
   const auth = getAuth()
   const navigate = useNavigate()
   const [item, setItem] = useState(null)
+  const [job, setJob] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
   const [showUploadModal, setShowUploadModal] = useState(false)
@@ -31,6 +33,16 @@ function ClientItemGalleryPage() {
       setError('')
       const data = await getItemById(id)
       setItem(data)
+      
+      if (data.job) {
+        const jobId = typeof data.job === 'string' ? data.job : data.job._id || data.job
+        try {
+          const jobData = await getClientJobById(jobId)
+          setJob(jobData.job)
+        } catch (err) {
+          console.error('Failed to load job:', err)
+        }
+      }
     } catch (err) {
       setError(err.message || 'Failed to load item')
     } finally {
@@ -84,6 +96,25 @@ function ClientItemGalleryPage() {
     return item.photos.slice(group.startIndex, group.endIndex + 1)
   }
 
+  const formatDate = (dateString) => {
+    if (!dateString) return null
+    return new Date(dateString).toLocaleDateString('en-US', { 
+      weekday: 'long',
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    })
+  }
+
+  const formatTime = (timeString) => {
+    if (!timeString) return null
+    const [hours, minutes] = timeString.split(':')
+    const hour = parseInt(hours)
+    const ampm = hour >= 12 ? 'PM' : 'AM'
+    const displayHour = hour % 12 || 12
+    return `${displayHour}:${minutes} ${ampm}`
+  }
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-[#F8F5F0] flex items-center justify-center">
@@ -133,6 +164,9 @@ function ClientItemGalleryPage() {
       </div>
     )
   }
+
+  const hasOnlineSaleDates = job && (job.onlineSaleStartDate || job.onlineSaleEndDate)
+  const hasEstateSaleDate = job && job.estateSaleDate
 
   return (
     <div className="min-h-screen bg-[#F8F5F0]">
@@ -232,6 +266,65 @@ function ClientItemGalleryPage() {
             <p className="text-sm text-yellow-800" style={{ fontFamily: 'Inter, sans-serif' }}>
               ⏳ <strong>Under review:</strong> Your agent is currently reviewing these photos.
             </p>
+          </div>
+        )}
+
+        {(hasOnlineSaleDates || hasEstateSaleDate) && (
+          <div className="mb-6 bg-white p-6 rounded-xl shadow-md">
+            <h3 className="text-lg font-bold text-[#101010] mb-4" style={{ fontFamily: 'Playfair Display, serif' }}>
+              📅 Sale Schedule
+            </h3>
+
+            <div className="space-y-4">
+              {hasOnlineSaleDates && (
+                <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                  <h4 className="text-sm font-bold text-blue-900 mb-2 flex items-center gap-2" style={{ fontFamily: 'Inter, sans-serif' }}>
+                    <span className="text-lg">🌐</span>
+                    Online Sale
+                  </h4>
+                  <div className="space-y-1 text-sm text-blue-800" style={{ fontFamily: 'Inter, sans-serif' }}>
+                    {job.onlineSaleStartDate && (
+                      <p>
+                        <span className="font-semibold">Opens:</span> {formatDate(job.onlineSaleStartDate)}
+                      </p>
+                    )}
+                    {job.onlineSaleEndDate && (
+                      <p>
+                        <span className="font-semibold">Closes:</span> {formatDate(job.onlineSaleEndDate)}
+                      </p>
+                    )}
+                    {!job.onlineSaleStartDate && !job.onlineSaleEndDate && (
+                      <p className="text-blue-700 italic">Dates to be announced</p>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {hasEstateSaleDate && (
+                <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
+                  <h4 className="text-sm font-bold text-purple-900 mb-2 flex items-center gap-2" style={{ fontFamily: 'Inter, sans-serif' }}>
+                    <span className="text-lg">🏠</span>
+                    In-Person Estate Sale
+                  </h4>
+                  <div className="space-y-1 text-sm text-purple-800" style={{ fontFamily: 'Inter, sans-serif' }}>
+                    <p>
+                      <span className="font-semibold">Date:</span> {formatDate(job.estateSaleDate)}
+                    </p>
+                    {(job.estateSaleStartTime && job.estateSaleEndTime) && (
+                      <p>
+                        <span className="font-semibold">Hours:</span> {formatTime(job.estateSaleStartTime)} - {formatTime(job.estateSaleEndTime)}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="mt-4 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+              <p className="text-xs text-yellow-800" style={{ fontFamily: 'Inter, sans-serif' }}>
+                💡 <strong>Note:</strong> Items will automatically become available based on these dates. You'll receive notifications when each sale phase begins.
+              </p>
+            </div>
           </div>
         )}
 
