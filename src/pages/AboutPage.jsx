@@ -2,145 +2,95 @@ import { Link } from 'react-router-dom'
 
 function AboutPage() {
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-16">
-      
-      {/* Page Title */}
-      <div className="text-center mb-16">
-        <h1 
-          className="text-4xl sm:text-5xl font-bold text-[#101010] mb-4" 
-          style={{ fontFamily: 'Playfair Display, serif' }}
-        >
-          About Kept House
-        </h1>
-        <p 
-          className="text-xl text-[#707072]" 
-          style={{ fontFamily: 'Inter, sans-serif' }}
-        >
-          We help families manage estate transitions with care, efficiency, and respect.
-        </p>
-      </div>
+    <div className="bg-[#F8F5F0]">
 
-      {/* Who We Serve */}
-      <section className="mb-16">
-        <h2 
-          className="text-3xl font-bold text-[#101010] mb-8" 
-          style={{ fontFamily: 'Playfair Display, serif' }}
-        >
-          Who We Serve
-        </h2>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {[
-            { title: 'Homeowners', desc: 'Downsizing or relocating' },
-            { title: 'Executors', desc: 'Managing estate settlements' },
-            { title: 'Families', desc: 'Navigating difficult transitions' },
-            { title: 'Real Estate Pros', desc: 'Preparing properties for sale' }
-          ].map((item, i) => (
-            <div key={i} className="bg-white p-6 rounded-lg shadow-md border border-[#707072]/10">
-              <h3 
-                className="text-lg font-bold text-[#101010] mb-2" 
-                style={{ fontFamily: 'Playfair Display, serif' }}
-              >
-                {item.title}
-              </h3>
-              <p className="text-sm text-[#707072]" style={{ fontFamily: 'Inter, sans-serif' }}>
-                {item.desc}
-              </p>
-            </div>
-          ))}
+      {/* Mission Statement */}
+      <section className="py-20 px-4 bg-white">
+        <div className="max-w-4xl mx-auto text-center">
+          <span
+            className="text-sm font-semibold text-[#e6c35a] uppercase tracking-wider mb-4 block"
+            style={{ fontFamily: 'Inter, sans-serif' }}
+          >
+            Our Mission
+          </span>
+          <p
+            className="text-2xl sm:text-3xl lg:text-4xl text-[#101010] leading-relaxed"
+            style={{ fontFamily: 'Playfair Display, serif' }}
+          >
+            "At Kept House, we're dedicated to helping families navigate life's transitions with compassion, transparency, and care. Making estate sales simple and stress-free."
+          </p>
         </div>
       </section>
 
-      {/* How We Work */}
-      <section className="mb-16">
-        <h2 
-          className="text-3xl font-bold text-[#101010] mb-8" 
-          style={{ fontFamily: 'Playfair Display, serif' }}
-        >
-          How We Work
-        </h2>
-        <div className="bg-white rounded-lg shadow-md p-8">
-          <div className="space-y-6">
-            {[
-              { title: 'Walkthrough', desc: 'We assess your items and create a tailored plan.' },
-              { title: 'Staging', desc: 'Items are organized and cataloged with AI assistance.' },
-              { title: 'Sale', desc: 'Online and in-person sales maximize your return.' },
-              { title: 'Donation', desc: 'Unsold items go to trusted partners with tax receipts.' },
-              { title: 'Payout', desc: 'Complete property clearing with full financial transparency.' }
-            ].map((step, i) => (
-              <div key={i} className="flex gap-4 items-start">
-                <div 
-                  className="flex-shrink-0 w-8 h-8 bg-[#e6c35a] text-black rounded-full flex items-center justify-center font-bold text-sm" 
-                  style={{ fontFamily: 'Inter, sans-serif' }}
-                >
-                  {i + 1}
-                </div>
-                <div>
-                  <h3 
-                    className="text-lg font-semibold text-[#101010] mb-1" 
+      {/* Our Company */}
+      <section className="py-20 px-4">
+        <div className="max-w-6xl mx-auto">
+          <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-start">
+            <div>
+              <h2
+                className="text-3xl sm:text-4xl font-bold text-[#101010] mb-6"
+                style={{ fontFamily: 'Playfair Display, serif' }}
+              >
+                Our Company
+              </h2>
+              <div className="space-y-6 text-lg text-[#707072]" style={{ fontFamily: 'Inter, sans-serif' }}>
+                <p>
+                  Founded to address the challenges families face during major life transitions, Kept House combines compassionate service with modern technology to deliver speed, transparency, and peace of mind.
+                </p>
+                <p>
+                  Our platform has helped dozens of families sell, donate, and clear estates. We handle everything from AI-powered cataloging to coordinating trusted vendors for hauling and donations.
+                </p>
+              </div>
+            </div>
+
+            {/* Core Values */}
+            <div className="grid grid-cols-2 gap-6">
+              {[
+                { title: 'Compassion', desc: 'We treat every family with dignity and care.' },
+                { title: 'Transparency', desc: 'Real-time updates and no hidden fees.' },
+                { title: 'Simplicity', desc: 'We handle the details so you don\'t have to.' },
+                { title: 'Trust', desc: 'Vetted partners and secure transactions.' }
+              ].map((value, i) => (
+                <div key={i} className="bg-white p-6 rounded-xl">
+                  <h3
+                    className="text-lg font-bold text-[#101010] mb-2"
                     style={{ fontFamily: 'Playfair Display, serif' }}
                   >
-                    {step.title}
+                    {value.title}
                   </h3>
                   <p className="text-sm text-[#707072]" style={{ fontFamily: 'Inter, sans-serif' }}>
-                    {step.desc}
+                    {value.desc}
                   </p>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Values */}
-      <section className="mb-16">
-        <h2 
-          className="text-3xl font-bold text-[#101010] mb-8" 
-          style={{ fontFamily: 'Playfair Display, serif' }}
-        >
-          Our Values
-        </h2>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {['Compassion', 'Transparency', 'Legacy', 'Professionalism'].map((value, i) => (
-            <div key={i} className="bg-[#edd88c]/20 p-6 rounded-lg text-center">
-              <p 
-                className="text-lg font-bold text-[#101010]" 
-                style={{ fontFamily: 'Playfair Display, serif' }}
-              >
-                {value}
-              </p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Founder Message */}
-      <section className="mb-16">
-        <div className="bg-[#F8F5F0] p-8 rounded-lg shadow-md">
-          <p 
-            className="text-lg text-[#101010] italic mb-4" 
+      {/* CTA */}
+      <section className="py-20 px-4 bg-white">
+        <div className="max-w-3xl mx-auto text-center">
+          <h2
+            className="text-3xl font-bold text-[#101010] mb-4"
             style={{ fontFamily: 'Playfair Display, serif' }}
           >
-            "At Kept House, we believe every estate tells a story worth honoring. Our team is dedicated 
-            to making transitions as smooth and stress-free as possible."
-          </p>
-          <p 
-            className="text-sm font-semibold text-[#707072]" 
+            Let's Talk
+          </h2>
+          <p
+            className="text-lg text-[#707072] mb-8"
             style={{ fontFamily: 'Inter, sans-serif' }}
           >
-            — Greg Pipkins, Co-Founder & CEO
+            Ready to get started? Schedule a free consultation with our team.
           </p>
+          <Link
+            to="/contact"
+            className="inline-block px-10 py-4 bg-[#e6c35a] text-black rounded-lg font-bold hover:bg-[#edd88c] transition-all text-lg"
+            style={{ fontFamily: 'Inter, sans-serif' }}
+          >
+            Schedule a Call
+          </Link>
         </div>
-      </section>
-
-      {/* CTA */}
-      <section className="text-center">
-        <Link 
-          to="/contact"
-          className="inline-block px-8 py-3 bg-[#e6c35a] text-black rounded-lg font-bold hover:bg-[#edd88c] transition-all shadow-md text-lg"
-          style={{ fontFamily: 'Inter, sans-serif' }}
-        >
-          Contact Us
-        </Link>
       </section>
 
     </div>

@@ -1,4 +1,4 @@
-function UnanalyzedItemsList({ unanalyzedGroups, item, onAnalyze, isAnalyzing }) {
+function UnanalyzedItemsList({ unanalyzedGroups, item, onAnalyze, isAnalyzing, isInFinalStage }) {
   const getPhotosForGroup = (group) => {
     if (!item || !item.photos) return []
     return item.photos.slice(group.startIndex, group.endIndex + 1)
@@ -12,14 +12,16 @@ function UnanalyzedItemsList({ unanalyzedGroups, item, onAnalyze, isAnalyzing })
         <h3 className="text-lg font-bold text-[#101010]" style={{ fontFamily: 'Playfair Display, serif' }}>
           New Items ({unanalyzedGroups.length})
         </h3>
-        <button
-          onClick={onAnalyze}
-          disabled={isAnalyzing}
-          className="px-4 py-2 bg-[#101010] text-[#F8F5F0] rounded-lg font-semibold hover:bg-[#707072] transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed text-sm"
-          style={{ fontFamily: 'Inter, sans-serif' }}
-        >
-          🤖 Analyze {unanalyzedGroups.length} New Item{unanalyzedGroups.length !== 1 ? 's' : ''}
-        </button>
+        {!isInFinalStage && (
+          <button
+            onClick={onAnalyze}
+            disabled={isAnalyzing}
+            className="px-4 py-2 bg-[#101010] text-[#F8F5F0] rounded-lg font-semibold hover:bg-[#707072] transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+            style={{ fontFamily: 'Inter, sans-serif' }}
+          >
+            🤖 Analyze {unanalyzedGroups.length} New Item{unanalyzedGroups.length !== 1 ? 's' : ''}
+          </button>
+        )}
       </div>
       <div className="space-y-4">
         {unanalyzedGroups.map((group) => {

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { register } from '../utils/api'
 import { saveAuth } from '../utils/auth'
@@ -8,11 +8,24 @@ function SignupPage() {
     name: '',
     email: '',
     password: '',
-    role: 'client'
+    role: 'client',
+    // Vendor-specific fields
+    companyName: '',
+    phone: '',
+    serviceArea: '',
+    serviceType: ''
   })
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const navigate = useNavigate()
+  const errorRef = useRef(null)
+
+  // Scroll to error when it appears
+  useEffect(() => {
+    if (error && errorRef.current) {
+      errorRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }
+  }, [error])
 
   const roles = [
     {
@@ -59,6 +72,26 @@ function SignupPage() {
       return
     }
 
+    // Validate vendor-specific fields
+    if (formData.role === 'vendor') {
+      if (!formData.companyName.trim()) {
+        setError('Company name is required for vendors')
+        return
+      }
+      if (!formData.phone.trim()) {
+        setError('Phone number is required for vendors')
+        return
+      }
+      if (!formData.serviceArea.trim()) {
+        setError('Service area is required for vendors')
+        return
+      }
+      if (!formData.serviceType) {
+        setError('Please select your service type')
+        return
+      }
+    }
+
     setIsLoading(true)
 
     try {
@@ -67,6 +100,15 @@ function SignupPage() {
         email: formData.email,
         password: formData.password,
         role: formData.role
+      }
+
+      // Add vendor-specific fields to payload
+      if (formData.role === 'vendor') {
+        payload.companyName = formData.companyName
+        // Add +1 prefix for US phone numbers
+        payload.phone = formData.phone.startsWith('+1') ? formData.phone : `+1${formData.phone}`
+        payload.serviceArea = formData.serviceArea
+        payload.serviceType = formData.serviceType
       }
 
       const data = await register(payload)
@@ -110,7 +152,7 @@ function SignupPage() {
         <div className="bg-white rounded-lg shadow-lg p-8">
           
           {error && (
-            <div className="mb-5 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <div ref={errorRef} className="mb-5 p-4 bg-red-50 border border-red-200 rounded-lg">
               <p className="text-sm text-red-600" style={{ fontFamily: 'Inter, sans-serif' }}>
                 {error}
               </p>
@@ -223,8 +265,120 @@ function SignupPage() {
                 ))}
               </div>
             </div>
-            
-            <button 
+
+            {/* Vendor-specific fields */}
+            {formData.role === 'vendor' && (
+              <div className="space-y-5 pt-4 border-t border-gray-200">
+                <p className="text-sm font-semibold text-[#e6c35a]" style={{ fontFamily: 'Inter, sans-serif' }}>
+                  Vendor Information
+                </p>
+
+                <div>
+                  <label
+                    className="block text-sm font-semibold text-[#101010] mb-2"
+                    style={{ fontFamily: 'Inter, sans-serif' }}
+                  >
+                    Company Name *
+                  </label>
+                  <input
+                    type="text"
+                    disabled={isLoading}
+                    value={formData.companyName}
+                    onChange={(e) => setFormData({...formData, companyName: e.target.value})}
+                    className="w-full px-4 py-3 border border-[#707072]/30 rounded-lg focus:outline-none focus:border-[#e6c35a] focus:ring-2 focus:ring-[#e6c35a]/20 transition-all disabled:bg-gray-50"
+                    style={{ fontFamily: 'Inter, sans-serif' }}
+                    placeholder="ABC Hauling Services"
+                  />
+                </div>
+
+                <div>
+                  <label
+                    className="block text-sm font-semibold text-[#101010] mb-2"
+                    style={{ fontFamily: 'Inter, sans-serif' }}
+                  >
+                    Phone Number *
+                  </label>
+                  <div className="flex">
+                    <span className="inline-flex items-center px-4 py-3 bg-gray-100 border border-r-0 border-[#707072]/30 rounded-l-lg text-[#707072] font-medium" style={{ fontFamily: 'Inter, sans-serif' }}>
+                      +1
+                    </span>
+                    <input
+                      type="tel"
+                      disabled={isLoading}
+                      value={formData.phone}
+                      onChange={(e) => {
+                        // Only allow digits
+                        const digits = e.target.value.replace(/\D/g, '')
+                        setFormData({...formData, phone: digits})
+                      }}
+                      className="flex-1 px-4 py-3 border border-[#707072]/30 rounded-r-lg focus:outline-none focus:border-[#e6c35a] focus:ring-2 focus:ring-[#e6c35a]/20 transition-all disabled:bg-gray-50"
+                      style={{ fontFamily: 'Inter, sans-serif' }}
+                      placeholder="5551234567"
+                      maxLength={10}
+                    />
+                  </div>
+                  <p className="text-xs text-[#707072] mt-1" style={{ fontFamily: 'Inter, sans-serif' }}>
+                    10-digit US phone number
+                  </p>
+                </div>
+
+                <div>
+                  <label
+                    className="block text-sm font-semibold text-[#101010] mb-2"
+                    style={{ fontFamily: 'Inter, sans-serif' }}
+                  >
+                    Service Area *
+                  </label>
+                  <input
+                    type="text"
+                    disabled={isLoading}
+                    value={formData.serviceArea}
+                    onChange={(e) => setFormData({...formData, serviceArea: e.target.value})}
+                    className="w-full px-4 py-3 border border-[#707072]/30 rounded-lg focus:outline-none focus:border-[#e6c35a] focus:ring-2 focus:ring-[#e6c35a]/20 transition-all disabled:bg-gray-50"
+                    style={{ fontFamily: 'Inter, sans-serif' }}
+                    placeholder="Dallas, TX and surrounding areas"
+                  />
+                </div>
+
+                <div>
+                  <label
+                    className="block text-sm font-semibold text-[#101010] mb-3"
+                    style={{ fontFamily: 'Inter, sans-serif' }}
+                  >
+                    Service Type *
+                  </label>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    {[
+                      { value: 'hauling', label: 'Hauling', icon: '🚚', desc: 'Junk removal & cleanout' },
+                      { value: 'donation', label: 'Donation', icon: '🎁', desc: 'Charity pickup services' },
+                      { value: 'both', label: 'Both', icon: '🚚🎁', desc: 'Hauling and donation' }
+                    ].map((type) => (
+                      <button
+                        key={type.value}
+                        type="button"
+                        disabled={isLoading}
+                        onClick={() => setFormData({...formData, serviceType: type.value})}
+                        className={`p-3 rounded-lg border-2 transition-all text-left ${
+                          formData.serviceType === type.value
+                            ? 'border-[#e6c35a] bg-[#e6c35a]/10'
+                            : 'border-gray-200 hover:border-[#e6c35a]/50'
+                        } disabled:opacity-50 disabled:cursor-not-allowed`}
+                      >
+                        <div className="text-2xl mb-1">{type.icon}</div>
+                        <div className="font-bold text-sm text-[#101010]" style={{ fontFamily: 'Inter, sans-serif' }}>
+                          {type.label}
+                        </div>
+                        <div className="text-xs text-[#707072]" style={{ fontFamily: 'Inter, sans-serif' }}>
+                          {type.desc}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <button
               type="submit"
               disabled={isLoading}
               className="w-full bg-[#e6c35a] text-black px-6 py-3 rounded-lg font-bold hover:bg-[#edd88c] transition-all shadow-md text-lg disabled:bg-gray-300 disabled:cursor-not-allowed"

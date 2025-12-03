@@ -42,8 +42,10 @@ export const updateClientJobDeposit = async (jobId, depositData) => {
   })
 }
 
-export const getClientJobs = async () => {
-  return apiCall('/client-jobs')
+export const getClientJobs = async (params = {}) => {
+  const queryString = new URLSearchParams(params).toString()
+  const endpoint = queryString ? `/client-jobs?${queryString}` : '/client-jobs'
+  return apiCall(endpoint)
 }
 
 export const getClientJobById = async (jobId) => {

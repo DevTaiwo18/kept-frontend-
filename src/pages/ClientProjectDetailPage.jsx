@@ -3,6 +3,7 @@ import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { getAuth, clearAuth } from '../utils/auth'
 import { getClientJobById, payClientJobDeposit } from '../utils/clientJobsApi'
 import { getJobItems, createItem, uploadItemPhotos } from '../utils/itemsApi'
+import { getJobReceipts } from '../utils/vendorsApi'
 import logo from '../assets/Kept House _transparent logo .png'
 
 function ClientProjectDetailPage() {
@@ -22,6 +23,8 @@ function ClientProjectDetailPage() {
   const [isProcessingPayment, setIsProcessingPayment] = useState(false)
   const [paymentError, setPaymentError] = useState('')
   const [showSuccessModal, setShowSuccessModal] = useState(false)
+  const [vendorReceipts, setVendorReceipts] = useState([])
+  const [isLoadingReceipts, setIsLoadingReceipts] = useState(false)
 
   const handleLogout = () => {
     clearAuth()
@@ -31,6 +34,7 @@ function ClientProjectDetailPage() {
   useEffect(() => {
     loadProject()
     loadItems()
+    loadReceipts()
 
     const paymentStatus = searchParams.get('payment')
     if (paymentStatus === 'success') {
@@ -67,6 +71,18 @@ function ClientProjectDetailPage() {
       console.error('Failed to load items:', err)
     } finally {
       setIsLoadingItems(false)
+    }
+  }
+
+  const loadReceipts = async () => {
+    try {
+      setIsLoadingReceipts(true)
+      const data = await getJobReceipts(id)
+      setVendorReceipts(data.receipts || [])
+    } catch (err) {
+      console.error('Failed to load vendor receipts:', err)
+    } finally {
+      setIsLoadingReceipts(false)
     }
   }
 
@@ -466,20 +482,35 @@ function ClientProjectDetailPage() {
               {item.photoGroups.slice(0, 3).map((group) => {
                 const firstPhotoIndex = group.startIndex
                 const photoUrl = item.photos[firstPhotoIndex]
+                const approvedItem = item.approvedItems?.find(ai => ai.itemNumber === group.itemNumber)
+                const isSold = item.soldPhotoIndices?.some(idx => idx >= group.startIndex && idx <= group.endIndex)
+                const isDonated = item.donatedPhotoIndices?.some(idx => idx >= group.startIndex && idx <= group.endIndex)
+                const isHauled = item.hauledPhotoIndices?.some(idx => idx >= group.startIndex && idx <= group.endIndex)
 
                 return (
                   <div
                     key={group.itemNumber}
-                    className="border-2 rounded-lg overflow-hidden transition-all bg-white hover:border-[#e6c35a] border-gray-200"
+                    className={`border-2 rounded-lg overflow-hidden transition-all bg-white ${
+                      isSold || isDonated || isHauled ? 'border-gray-300' : 'hover:border-[#e6c35a] border-gray-200'
+                    }`}
                   >
                     {photoUrl ? (
                       <div className="relative h-48 sm:h-56 overflow-hidden">
                         <img
                           src={photoUrl}
                           alt={group.title}
-                          className="w-full h-full object-cover"
+                          className={`w-full h-full object-cover ${isSold || isDonated || isHauled ? 'opacity-60 grayscale' : ''}`}
                         />
-                        {group.photoCount > 1 && (
+                        {(isSold || isDonated || isHauled) && (
+                          <div className="absolute inset-0 flex items-center justify-center bg-black/40">
+                            <div className={`px-4 py-2 rounded-lg font-bold text-sm text-white shadow-lg ${
+                              isSold ? 'bg-red-600' : isDonated ? 'bg-purple-600' : 'bg-orange-600'
+                            }`} style={{ fontFamily: 'Inter, sans-serif' }}>
+                              {isSold ? 'SOLD' : isDonated ? 'DONATED' : 'HAULED'}
+                            </div>
+                          </div>
+                        )}
+                        {group.photoCount > 1 && !isSold && !isDonated && !isHauled && (
                           <div className="absolute bottom-2 right-2 bg-black/70 text-white px-3 py-1.5 rounded-lg">
                             <span className="text-sm font-bold" style={{ fontFamily: 'Inter, sans-serif' }}>
                               +{group.photoCount - 1}
@@ -500,17 +531,35 @@ function ClientProjectDetailPage() {
                         <h4 className="text-sm sm:text-base font-semibold text-[#101010]" style={{ fontFamily: 'Inter, sans-serif' }}>
                           {group.title}
                         </h4>
-                        <span
-                          className={`px-2 sm:px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap ${item.status === 'approved' ? 'bg-green-100 text-green-800' :
-                              item.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                                'bg-blue-100 text-blue-800'
-                            }`}
-                          style={{ fontFamily: 'Inter, sans-serif' }}
-                        >
-                          {item.status === 'draft' ? 'Awaiting Review' :
-                            item.status === 'approved' ? 'Approved' :
-                              item.status}
-                        </span>
+                        {isSold ? (
+                          <span className="px-2 sm:px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap bg-red-100 text-red-800" style={{ fontFamily: 'Inter, sans-serif' }}>
+                            Sold
+                          </span>
+                        ) : isDonated ? (
+                          <span className="px-2 sm:px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap bg-purple-100 text-purple-800" style={{ fontFamily: 'Inter, sans-serif' }}>
+                            Donated
+                          </span>
+                        ) : isHauled ? (
+                          <span className="px-2 sm:px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap bg-orange-100 text-orange-800" style={{ fontFamily: 'Inter, sans-serif' }}>
+                            Hauled
+                          </span>
+                        ) : approvedItem ? (
+                          <span className="px-2 sm:px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap bg-green-100 text-green-800" style={{ fontFamily: 'Inter, sans-serif' }}>
+                            ${approvedItem.price || '0'}
+                          </span>
+                        ) : (
+                          <span
+                            className={`px-2 sm:px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap ${item.status === 'approved' ? 'bg-green-100 text-green-800' :
+                                item.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                                  'bg-blue-100 text-blue-800'
+                              }`}
+                            style={{ fontFamily: 'Inter, sans-serif' }}
+                          >
+                            {item.status === 'draft' ? 'Awaiting Review' :
+                              item.status === 'approved' ? 'Approved' :
+                                item.status}
+                          </span>
+                        )}
                       </div>
                       <p className="text-xs sm:text-sm text-[#707072]" style={{ fontFamily: 'Inter, sans-serif' }}>
                         {group.photoCount} photo(s)
@@ -650,6 +699,124 @@ function ClientProjectDetailPage() {
             </div>
           </div>
         )}
+
+        {/* Vendor Receipts Section - Separated by type */}
+        {vendorReceipts.length > 0 && (() => {
+          // Categorize receipts by bidType
+          const getReceiptType = (r) => {
+            // Check bidType at root level or nested under bid
+            const bidType = r.bidType || r.bid?.bidType
+            if (bidType === 'donation') return 'donation'
+            if (bidType === 'hauling') return 'hauling'
+            // Then check vendor serviceType (only if specific, not 'both')
+            if (r.vendor?.serviceType === 'donation') return 'donation'
+            if (r.vendor?.serviceType === 'hauling') return 'hauling'
+            // For 'both' vendors without bidType, it's uncategorized/legacy
+            return 'other'
+          }
+
+          const donationReceipts = vendorReceipts.filter(r => getReceiptType(r) === 'donation')
+          const haulingReceipts = vendorReceipts.filter(r => getReceiptType(r) === 'hauling')
+          const otherReceipts = vendorReceipts.filter(r => getReceiptType(r) === 'other')
+
+          const ReceiptCard = ({ receipt, idx, colorClass, serviceLabel }) => (
+            <div
+              key={receipt._id || idx}
+              className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 p-4 bg-[#F8F5F0] rounded-lg"
+            >
+              <div className="flex-1">
+                <p className="text-sm font-semibold text-[#101010]" style={{ fontFamily: 'Inter, sans-serif' }}>
+                  {receipt.vendor?.companyName || receipt.vendor?.name || 'Vendor'}
+                  {serviceLabel && <span className="text-[#707072] font-normal"> ({serviceLabel})</span>}
+                </p>
+                {receipt.receipt?.uploadedAt && (
+                  <p className="text-xs text-[#707072]" style={{ fontFamily: 'Inter, sans-serif' }}>
+                    Uploaded: {formatDate(receipt.receipt.uploadedAt)}
+                  </p>
+                )}
+              </div>
+              {receipt.receipt?.url && (
+                <a
+                  href={receipt.receipt.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${colorClass}`}
+                  style={{ fontFamily: 'Inter, sans-serif' }}
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  View Receipt
+                </a>
+              )}
+            </div>
+          )
+
+          return (
+            <div className="bg-white p-4 sm:p-6 rounded-xl shadow-md mb-6">
+              <h3 className="text-base sm:text-lg font-bold text-[#101010] mb-4" style={{ fontFamily: 'Playfair Display, serif' }}>
+                Vendor Receipts
+              </h3>
+
+              {/* Donation Receipts */}
+              {donationReceipts.length > 0 && (
+                <div className="mb-6">
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="px-2 py-1 bg-purple-100 text-purple-800 rounded text-xs font-semibold" style={{ fontFamily: 'Inter, sans-serif' }}>
+                      Donation
+                    </span>
+                    <span className="text-xs text-[#707072]" style={{ fontFamily: 'Inter, sans-serif' }}>
+                      {donationReceipts.length} receipt(s)
+                    </span>
+                  </div>
+                  <div className="space-y-3 border-l-4 border-purple-400 pl-4">
+                    {donationReceipts.map((receipt, idx) => (
+                      <ReceiptCard key={receipt._id || idx} receipt={receipt} idx={idx} colorClass="bg-purple-600 text-white hover:bg-purple-700" serviceLabel="Donation" />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Hauling Receipts */}
+              {haulingReceipts.length > 0 && (
+                <div className="mb-6">
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="px-2 py-1 bg-orange-100 text-orange-800 rounded text-xs font-semibold" style={{ fontFamily: 'Inter, sans-serif' }}>
+                      Hauling
+                    </span>
+                    <span className="text-xs text-[#707072]" style={{ fontFamily: 'Inter, sans-serif' }}>
+                      {haulingReceipts.length} receipt(s)
+                    </span>
+                  </div>
+                  <div className="space-y-3 border-l-4 border-orange-400 pl-4">
+                    {haulingReceipts.map((receipt, idx) => (
+                      <ReceiptCard key={receipt._id || idx} receipt={receipt} idx={idx} colorClass="bg-orange-600 text-white hover:bg-orange-700" serviceLabel="Hauling" />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Other Receipts (legacy or untyped) */}
+              {otherReceipts.length > 0 && (
+                <div>
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="px-2 py-1 bg-gray-100 text-gray-800 rounded text-xs font-semibold" style={{ fontFamily: 'Inter, sans-serif' }}>
+                      Service
+                    </span>
+                    <span className="text-xs text-[#707072]" style={{ fontFamily: 'Inter, sans-serif' }}>
+                      {otherReceipts.length} receipt(s)
+                    </span>
+                  </div>
+                  <div className="space-y-3 border-l-4 border-gray-400 pl-4">
+                    {otherReceipts.map((receipt, idx) => (
+                      <ReceiptCard key={receipt._id || idx} receipt={receipt} idx={idx} colorClass="bg-[#e6c35a] text-black hover:bg-[#edd88c]" />
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )
+        })()}
 
         {project.services && Object.values(project.services).some(v => v) && (
           <div className="bg-white p-4 sm:p-6 rounded-xl shadow-md mb-6">

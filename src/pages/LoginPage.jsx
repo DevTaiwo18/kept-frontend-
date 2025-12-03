@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { login } from '../utils/api'
 import { saveAuth } from '../utils/auth'
@@ -9,6 +9,14 @@ function LoginPage() {
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const navigate = useNavigate()
+  const errorRef = useRef(null)
+
+  // Scroll to error when it appears
+  useEffect(() => {
+    if (error && errorRef.current) {
+      errorRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }
+  }, [error])
 
   const getRoleRoute = (role) => {
     const routes = {
@@ -59,7 +67,7 @@ function LoginPage() {
         <div className="bg-white rounded-lg shadow-lg p-8">
           
           {error && (
-            <div className="mb-5 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <div ref={errorRef} className="mb-5 p-4 bg-red-50 border border-red-200 rounded-lg">
               <p className="text-sm text-red-600" style={{ fontFamily: 'Inter, sans-serif' }}>
                 {error}
               </p>

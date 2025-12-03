@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { getAuth, clearAuth } from '../utils/auth'
 import { getClientJobById, updateClientJobProgress, requestClientJobDeposit } from '../utils/clientJobsApi'
 import { getJobItems, createItem, uploadItemPhotos } from '../utils/itemsApi'
+import { getBidsForJob, acceptBid, rejectBid, getDonationReceipts, markBidAsPaid } from '../utils/vendorsApi'
 import logo from '../assets/Kept House _transparent logo .png'
 
 function AgentJobDetailPage() {
@@ -32,6 +33,13 @@ function AgentJobDetailPage() {
   })
   const [depositError, setDepositError] = useState('')
   const [isRequestingDeposit, setIsRequestingDeposit] = useState(false)
+  const [bids, setBids] = useState([])
+  const [groupedBids, setGroupedBids] = useState({ donation: [], hauling: [], legacy: [] })
+  const [isLoadingBids, setIsLoadingBids] = useState(false)
+  const [bidActionLoading, setBidActionLoading] = useState(null)
+  const [donationReceipts, setDonationReceipts] = useState([])
+  const [confirmModal, setConfirmModal] = useState({ show: false, type: '', bidId: null, photoIndex: null })
+  const [notificationModal, setNotificationModal] = useState({ show: false, type: '', title: '', message: '' })
 
   const handleLogout = () => {
     clearAuth()
@@ -41,7 +49,104 @@ function AgentJobDetailPage() {
   useEffect(() => {
     loadJob()
     loadItems()
+    loadBids()
+    loadDonationReceipts()
   }, [id])
+
+  const loadBids = async () => {
+    try {
+      setIsLoadingBids(true)
+      const data = await getBidsForJob(id)
+      setBids(data.bids || [])
+      setGroupedBids(data.grouped || { donation: [], hauling: [], legacy: [] })
+    } catch (err) {
+      console.error('Error loading bids:', err)
+    } finally {
+      setIsLoadingBids(false)
+    }
+  }
+
+  const loadDonationReceipts = async () => {
+    try {
+      const data = await getDonationReceipts(id)
+      setDonationReceipts(data.receipts || [])
+    } catch (err) {
+      console.error('Error loading donation receipts:', err)
+    }
+  }
+
+  const handleAcceptBid = async (bidId) => {
+    setConfirmModal({ show: true, type: 'accept', bidId, photoIndex: null })
+  }
+
+  const confirmAcceptBid = async () => {
+    const bidId = confirmModal.bidId
+    setConfirmModal({ show: false, type: '', bidId: null, photoIndex: null })
+    try {
+      setBidActionLoading(bidId)
+      await acceptBid(bidId)
+      await loadBids()
+    } catch (err) {
+      console.error('Error accepting bid:', err)
+      setNotificationModal({
+        show: true,
+        type: 'error',
+        title: 'Failed to Accept',
+        message: err.message || 'Failed to accept bid'
+      })
+    } finally {
+      setBidActionLoading(null)
+    }
+  }
+
+  const handleRejectBid = async (bidId) => {
+    setConfirmModal({ show: true, type: 'reject', bidId, photoIndex: null })
+  }
+
+  const confirmRejectBid = async () => {
+    const bidId = confirmModal.bidId
+    setConfirmModal({ show: false, type: '', bidId: null, photoIndex: null })
+    try {
+      setBidActionLoading(bidId)
+      await rejectBid(bidId)
+      await loadBids()
+    } catch (err) {
+      console.error('Error rejecting bid:', err)
+      setNotificationModal({
+        show: true,
+        type: 'error',
+        title: 'Failed to Reject',
+        message: err.message || 'Failed to reject bid'
+      })
+    } finally {
+      setBidActionLoading(null)
+    }
+  }
+
+  const handleMarkAsPaid = async (bidId, paidAmount) => {
+    try {
+      setBidActionLoading(bidId)
+      await markBidAsPaid(bidId, paidAmount)
+      setNotificationModal({
+        show: true,
+        type: 'success',
+        title: 'Payment Recorded',
+        message: 'Vendor payment has been recorded and added to the finance summary'
+      })
+      await loadBids()
+      await loadJob() // Refresh job to get updated finance
+    } catch (err) {
+      console.error('Error marking bid as paid:', err)
+      setNotificationModal({
+        show: true,
+        type: 'error',
+        title: 'Failed to Record Payment',
+        message: err.message || 'Failed to mark vendor as paid'
+      })
+    } finally {
+      setBidActionLoading(null)
+    }
+  }
 
   const loadJob = async () => {
     try {
@@ -113,6 +218,9 @@ function AgentJobDetailPage() {
   const hasDraftItems = item && (item.status === 'draft' || item.status === 'needs_review')
   const hasApprovedItems = item && item.status === 'approved'
   const allItemsApproved = item && item.status === 'approved'
+
+  // Check if job is in final stages (payout_processing or closing)
+  const isInFinalStage = job?.stage === 'payout_processing' || job?.stage === 'closing'
 
   const handleCreateItem = async () => {
     setShowUploadModal(true)
@@ -403,13 +511,15 @@ function AgentJobDetailPage() {
                 Send Email
               </button>
             )}
-            <button
-              onClick={() => setShowStatusModal(true)}
-              className="px-6 py-3 bg-[#e6c35a] text-black rounded-lg font-bold hover:bg-[#edd88c] transition-all shadow-md whitespace-nowrap"
-              style={{ fontFamily: 'Inter, sans-serif' }}
-            >
-              Update Status
-            </button>
+            {job.stage !== 'closing' && (
+              <button
+                onClick={() => setShowStatusModal(true)}
+                className="px-6 py-3 bg-[#e6c35a] text-black rounded-lg font-bold hover:bg-[#edd88c] transition-all shadow-md whitespace-nowrap"
+                style={{ fontFamily: 'Inter, sans-serif' }}
+              >
+                Update Status
+              </button>
+            )}
           </div>
         </div>
 
@@ -573,6 +683,16 @@ function AgentJobDetailPage() {
               style={{ fontFamily: 'Inter, sans-serif' }}
             >
               Finance
+            </button>
+            <button
+              onClick={() => setActiveTab('bids')}
+              className={`flex-1 px-6 py-4 text-sm font-semibold transition-all ${activeTab === 'bids'
+                ? 'bg-[#e6c35a] text-black'
+                : 'bg-white text-[#707072] hover:bg-gray-50'
+                }`}
+              style={{ fontFamily: 'Inter, sans-serif' }}
+            >
+              {bids.some(b => b.status === 'accepted') ? 'Bids' : `Bids (${bids.length})`}
             </button>
           </div>
         </div>
@@ -859,7 +979,7 @@ function AgentJobDetailPage() {
                     View All Items
                   </button>
                 )}
-                {!allItemsApproved && (
+                {!allItemsApproved && !isInFinalStage && (
                   <button
                     onClick={handleCreateItem}
                     className="w-full sm:w-auto px-6 py-3 bg-[#e6c35a] text-black rounded-lg font-bold hover:bg-[#edd88c] transition-all shadow-md"
@@ -1085,9 +1205,9 @@ function AgentJobDetailPage() {
                   {allTransactions.map((transaction, i) => (
                     <div key={i} className="flex justify-between items-center p-4 bg-[#F8F5F0] rounded-lg hover:bg-gray-100 transition-all">
                       <div className="flex items-center gap-3">
-                        <div className={`w-10 h-10 rounded-full flex items-center justify-center ${transaction.type === 'deposit' ? 'bg-blue-100' : 'bg-green-100'
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center ${transaction.amount < 0 ? 'bg-red-100' : transaction.type === 'deposit' ? 'bg-blue-100' : 'bg-green-100'
                           }`}>
-                          <svg className={`w-5 h-5 ${transaction.type === 'deposit' ? 'text-blue-600' : 'text-green-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg className={`w-5 h-5 ${transaction.amount < 0 ? 'text-red-600' : transaction.type === 'deposit' ? 'text-blue-600' : 'text-green-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                           </svg>
                         </div>
@@ -1108,8 +1228,8 @@ function AgentJobDetailPage() {
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className={`text-lg font-bold ${transaction.type === 'deposit' ? 'text-blue-600' : 'text-green-600'}`} style={{ fontFamily: 'Inter, sans-serif' }}>
-                          +{formatCurrency(transaction.amount)}
+                        <p className={`text-lg font-bold ${transaction.amount < 0 ? 'text-red-600' : transaction.type === 'deposit' ? 'text-blue-600' : 'text-green-600'}`} style={{ fontFamily: 'Inter, sans-serif' }}>
+                          {transaction.amount >= 0 ? '+' : ''}{formatCurrency(transaction.amount)}
                         </p>
                       </div>
                     </div>
@@ -1131,6 +1251,530 @@ function AgentJobDetailPage() {
             </div>
           </>
         )}
+
+        {activeTab === 'bids' && (
+          <div className="space-y-6">
+            {isLoadingBids ? (
+              <div className="bg-white p-6 rounded-xl shadow-md text-center py-12">
+                <p className="text-[#707072]" style={{ fontFamily: 'Inter, sans-serif' }}>Loading bids...</p>
+              </div>
+            ) : (
+              <>
+                {/* Donation Vendor Section */}
+                <div className="bg-white p-6 rounded-xl shadow-md">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+                      <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold text-[#101010]" style={{ fontFamily: 'Playfair Display, serif' }}>
+                        Donation Vendor
+                      </h3>
+                      <p className="text-sm text-[#707072]" style={{ fontFamily: 'Inter, sans-serif' }}>
+                        Vendor assigned to handle item donations
+                      </p>
+                    </div>
+                  </div>
+
+                  {(() => {
+                    const donationBid = groupedBids.donation.find(b => b.status === 'accepted')
+                    const pendingDonationBids = groupedBids.donation.filter(b => b.status === 'submitted')
+
+                    if (donationBid) {
+                      return (
+                        <div className="p-4 rounded-lg border-2 border-purple-300 bg-purple-50">
+                          {/* Vendor Info */}
+                          <div className="flex items-center gap-3 mb-4">
+                            <div className="w-10 h-10 bg-purple-200 rounded-full flex items-center justify-center">
+                              <svg className="w-5 h-5 text-purple-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                              </svg>
+                            </div>
+                            <div>
+                              <h4 className="font-bold text-[#101010]" style={{ fontFamily: 'Playfair Display, serif' }}>
+                                {donationBid.vendor?.companyName || donationBid.vendor?.name || 'Unknown Vendor'}
+                              </h4>
+                              <span className="px-2 py-0.5 rounded text-xs font-semibold bg-purple-200 text-purple-800" style={{ fontFamily: 'Inter, sans-serif' }}>
+                                Assigned
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-4 mb-4">
+                            <div className="bg-white p-3 rounded-lg">
+                              <p className="text-[#707072] text-xs" style={{ fontFamily: 'Inter, sans-serif' }}>Agreed Amount</p>
+                              <p className="font-bold text-[#101010] text-lg" style={{ fontFamily: 'Inter, sans-serif' }}>
+                                {formatCurrency(donationBid.amount)}
+                              </p>
+                            </div>
+                            <div className="bg-white p-3 rounded-lg">
+                              <p className="text-[#707072] text-xs" style={{ fontFamily: 'Inter, sans-serif' }}>Timeline</p>
+                              <p className="font-bold text-[#101010] text-lg" style={{ fontFamily: 'Inter, sans-serif' }}>
+                                {donationBid.timelineDays > 0 ? `${donationBid.timelineDays} days` : 'TBD'}
+                              </p>
+                            </div>
+                          </div>
+
+                          {/* Contact Info */}
+                          <div className="bg-white p-3 rounded-lg mb-4">
+                            <p className="text-xs font-semibold text-[#707072] mb-2" style={{ fontFamily: 'Inter, sans-serif' }}>
+                              Contact Information
+                            </p>
+                            {donationBid.vendor?.phone && (
+                              <p className="text-sm text-[#101010] flex items-center gap-2" style={{ fontFamily: 'Inter, sans-serif' }}>
+                                <svg className="w-4 h-4 text-[#707072]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                                </svg>
+                                <a href={`tel:${donationBid.vendor.phone}`} className="text-[#e6c35a] hover:underline">
+                                  {donationBid.vendor.phone}
+                                </a>
+                              </p>
+                            )}
+                            {donationBid.vendor?.email && (
+                              <p className="text-sm text-[#101010] flex items-center gap-2 mt-1" style={{ fontFamily: 'Inter, sans-serif' }}>
+                                <svg className="w-4 h-4 text-[#707072]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                </svg>
+                                <a href={`mailto:${donationBid.vendor.email}`} className="text-[#e6c35a] hover:underline">
+                                  {donationBid.vendor.email}
+                                </a>
+                              </p>
+                            )}
+                          </div>
+
+                          {/* Payment Details */}
+                          <div className="bg-white p-3 rounded-lg mb-4">
+                            <p className="text-xs font-semibold text-[#707072] mb-2" style={{ fontFamily: 'Inter, sans-serif' }}>
+                              Payment Details
+                            </p>
+                            <span className={`px-2 py-1 rounded text-xs font-semibold ${
+                              donationBid.paymentMethod === 'cash' ? 'bg-green-100 text-green-800' :
+                              donationBid.paymentMethod === 'cashapp' ? 'bg-purple-100 text-purple-800' :
+                              donationBid.paymentMethod === 'bank' ? 'bg-blue-100 text-blue-800' :
+                              'bg-gray-100 text-gray-800'
+                            }`} style={{ fontFamily: 'Inter, sans-serif' }}>
+                              {donationBid.paymentMethod === 'cash' ? 'Cash' :
+                               donationBid.paymentMethod === 'cashapp' ? 'Cash App' :
+                               donationBid.paymentMethod === 'bank' ? 'Bank Transfer' :
+                               'Not specified'}
+                            </span>
+                          </div>
+
+                          {/* Payment Status */}
+                          <div className="border-t border-purple-200 pt-4">
+                            {donationBid.isPaid ? (
+                              <div className="flex items-center gap-2 p-3 bg-green-100 rounded-lg">
+                                <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <div>
+                                  <p className="text-sm font-semibold text-green-800" style={{ fontFamily: 'Inter, sans-serif' }}>
+                                    Paid: {formatCurrency(donationBid.paidAmount || donationBid.amount)}
+                                  </p>
+                                  {donationBid.paidAt && (
+                                    <p className="text-xs text-green-700" style={{ fontFamily: 'Inter, sans-serif' }}>
+                                      on {formatDate(donationBid.paidAt)}
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="space-y-3">
+                                <div className="flex items-center gap-2 p-3 bg-yellow-50 rounded-lg">
+                                  <svg className="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                  </svg>
+                                  <p className="text-sm text-yellow-800" style={{ fontFamily: 'Inter, sans-serif' }}>
+                                    Payment pending
+                                  </p>
+                                </div>
+                                <button
+                                  onClick={() => handleMarkAsPaid(donationBid._id, donationBid.amount)}
+                                  disabled={bidActionLoading === donationBid._id}
+                                  className="w-full px-4 py-3 bg-purple-600 text-white rounded-lg font-bold hover:bg-purple-700 transition-all disabled:opacity-50"
+                                  style={{ fontFamily: 'Inter, sans-serif' }}
+                                >
+                                  {bidActionLoading === donationBid._id ? 'Processing...' : `Mark as Paid (${formatCurrency(donationBid.amount)})`}
+                                </button>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Receipt */}
+                          {donationBid.receipt?.url && (
+                            <div className="mt-4 pt-4 border-t border-purple-200">
+                              <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg">
+                                <div className="flex items-center gap-2">
+                                  <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                  </svg>
+                                  <div>
+                                    <p className="text-sm font-medium text-[#101010]" style={{ fontFamily: 'Inter, sans-serif' }}>
+                                      Receipt Uploaded
+                                    </p>
+                                    {donationBid.receipt.uploadedAt && (
+                                      <p className="text-xs text-[#707072]" style={{ fontFamily: 'Inter, sans-serif' }}>
+                                        {formatDate(donationBid.receipt.uploadedAt)}
+                                      </p>
+                                    )}
+                                  </div>
+                                </div>
+                                <a
+                                  href={donationBid.receipt.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700"
+                                >
+                                  View PDF
+                                </a>
+                              </div>
+                            </div>
+                          )}
+
+                          <p className="text-xs text-[#707072] mt-3" style={{ fontFamily: 'Inter, sans-serif' }}>
+                            Bid accepted on: {formatDate(donationBid.updatedAt || donationBid.createdAt)}
+                          </p>
+                        </div>
+                      )
+                    } else if (pendingDonationBids.length > 0) {
+                      return (
+                        <div className="space-y-3">
+                          {pendingDonationBids.map(bid => (
+                            <div key={bid._id} className="p-4 rounded-lg bg-[#F8F5F0] border-l-4 border-purple-400">
+                              <div className="flex justify-between items-start">
+                                <div>
+                                  <h4 className="font-bold text-[#101010]" style={{ fontFamily: 'Inter, sans-serif' }}>
+                                    {bid.vendor?.companyName || bid.vendor?.name || 'Unknown Vendor'}
+                                  </h4>
+                                  <p className="text-sm text-[#707072]" style={{ fontFamily: 'Inter, sans-serif' }}>
+                                    Bid: {formatCurrency(bid.amount)} • {bid.timelineDays > 0 ? `${bid.timelineDays} days` : 'TBD'}
+                                  </p>
+                                </div>
+                                <div className="flex gap-2">
+                                  <button
+                                    onClick={() => handleAcceptBid(bid._id)}
+                                    disabled={bidActionLoading === bid._id}
+                                    className="px-3 py-1 bg-green-600 text-white rounded text-sm font-semibold hover:bg-green-700 disabled:opacity-50"
+                                  >
+                                    Accept
+                                  </button>
+                                  <button
+                                    onClick={() => handleRejectBid(bid._id)}
+                                    disabled={bidActionLoading === bid._id}
+                                    className="px-3 py-1 bg-red-100 text-red-800 rounded text-sm font-semibold hover:bg-red-200 disabled:opacity-50"
+                                  >
+                                    Reject
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )
+                    } else {
+                      return (
+                        <div className="text-center py-8 bg-[#F8F5F0] rounded-lg">
+                          <p className="text-[#707072]" style={{ fontFamily: 'Inter, sans-serif' }}>
+                            No donation vendor assigned yet
+                          </p>
+                        </div>
+                      )
+                    }
+                  })()}
+                </div>
+
+                {/* Hauling Vendor Section */}
+                <div className="bg-white p-6 rounded-xl shadow-md">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center">
+                      <svg className="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold text-[#101010]" style={{ fontFamily: 'Playfair Display, serif' }}>
+                        Hauling Vendor
+                      </h3>
+                      <p className="text-sm text-[#707072]" style={{ fontFamily: 'Inter, sans-serif' }}>
+                        Vendor assigned to handle item removal
+                      </p>
+                    </div>
+                  </div>
+
+                  {(() => {
+                    const haulingBid = groupedBids.hauling.find(b => b.status === 'accepted')
+                    const pendingHaulingBids = groupedBids.hauling.filter(b => b.status === 'submitted')
+
+                    if (haulingBid) {
+                      return (
+                        <div className="p-4 rounded-lg border-2 border-orange-300 bg-orange-50">
+                          {/* Vendor Info */}
+                          <div className="flex items-center gap-3 mb-4">
+                            <div className="w-10 h-10 bg-orange-200 rounded-full flex items-center justify-center">
+                              <svg className="w-5 h-5 text-orange-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                              </svg>
+                            </div>
+                            <div>
+                              <h4 className="font-bold text-[#101010]" style={{ fontFamily: 'Playfair Display, serif' }}>
+                                {haulingBid.vendor?.companyName || haulingBid.vendor?.name || 'Unknown Vendor'}
+                              </h4>
+                              <span className="px-2 py-0.5 rounded text-xs font-semibold bg-orange-200 text-orange-800" style={{ fontFamily: 'Inter, sans-serif' }}>
+                                Assigned
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-4 mb-4">
+                            <div className="bg-white p-3 rounded-lg">
+                              <p className="text-[#707072] text-xs" style={{ fontFamily: 'Inter, sans-serif' }}>Agreed Amount</p>
+                              <p className="font-bold text-[#101010] text-lg" style={{ fontFamily: 'Inter, sans-serif' }}>
+                                {formatCurrency(haulingBid.amount)}
+                              </p>
+                            </div>
+                            <div className="bg-white p-3 rounded-lg">
+                              <p className="text-[#707072] text-xs" style={{ fontFamily: 'Inter, sans-serif' }}>Timeline</p>
+                              <p className="font-bold text-[#101010] text-lg" style={{ fontFamily: 'Inter, sans-serif' }}>
+                                {haulingBid.timelineDays > 0 ? `${haulingBid.timelineDays} days` : 'TBD'}
+                              </p>
+                            </div>
+                          </div>
+
+                          {/* Contact Info */}
+                          <div className="bg-white p-3 rounded-lg mb-4">
+                            <p className="text-xs font-semibold text-[#707072] mb-2" style={{ fontFamily: 'Inter, sans-serif' }}>
+                              Contact Information
+                            </p>
+                            {haulingBid.vendor?.phone && (
+                              <p className="text-sm text-[#101010] flex items-center gap-2" style={{ fontFamily: 'Inter, sans-serif' }}>
+                                <svg className="w-4 h-4 text-[#707072]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                                </svg>
+                                <a href={`tel:${haulingBid.vendor.phone}`} className="text-[#e6c35a] hover:underline">
+                                  {haulingBid.vendor.phone}
+                                </a>
+                              </p>
+                            )}
+                            {haulingBid.vendor?.email && (
+                              <p className="text-sm text-[#101010] flex items-center gap-2 mt-1" style={{ fontFamily: 'Inter, sans-serif' }}>
+                                <svg className="w-4 h-4 text-[#707072]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                </svg>
+                                <a href={`mailto:${haulingBid.vendor.email}`} className="text-[#e6c35a] hover:underline">
+                                  {haulingBid.vendor.email}
+                                </a>
+                              </p>
+                            )}
+                          </div>
+
+                          {/* Payment Details */}
+                          <div className="bg-white p-3 rounded-lg mb-4">
+                            <p className="text-xs font-semibold text-[#707072] mb-2" style={{ fontFamily: 'Inter, sans-serif' }}>
+                              Payment Details
+                            </p>
+                            <span className={`px-2 py-1 rounded text-xs font-semibold ${
+                              haulingBid.paymentMethod === 'cash' ? 'bg-green-100 text-green-800' :
+                              haulingBid.paymentMethod === 'cashapp' ? 'bg-purple-100 text-purple-800' :
+                              haulingBid.paymentMethod === 'bank' ? 'bg-blue-100 text-blue-800' :
+                              'bg-gray-100 text-gray-800'
+                            }`} style={{ fontFamily: 'Inter, sans-serif' }}>
+                              {haulingBid.paymentMethod === 'cash' ? 'Cash' :
+                               haulingBid.paymentMethod === 'cashapp' ? 'Cash App' :
+                               haulingBid.paymentMethod === 'bank' ? 'Bank Transfer' :
+                               'Not specified'}
+                            </span>
+                          </div>
+
+                          {/* Payment Status */}
+                          <div className="border-t border-orange-200 pt-4">
+                            {haulingBid.isPaid ? (
+                              <div className="flex items-center gap-2 p-3 bg-green-100 rounded-lg">
+                                <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <div>
+                                  <p className="text-sm font-semibold text-green-800" style={{ fontFamily: 'Inter, sans-serif' }}>
+                                    Paid: {formatCurrency(haulingBid.paidAmount || haulingBid.amount)}
+                                  </p>
+                                  {haulingBid.paidAt && (
+                                    <p className="text-xs text-green-700" style={{ fontFamily: 'Inter, sans-serif' }}>
+                                      on {formatDate(haulingBid.paidAt)}
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="space-y-3">
+                                <div className="flex items-center gap-2 p-3 bg-yellow-50 rounded-lg">
+                                  <svg className="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                  </svg>
+                                  <p className="text-sm text-yellow-800" style={{ fontFamily: 'Inter, sans-serif' }}>
+                                    Payment pending
+                                  </p>
+                                </div>
+                                <button
+                                  onClick={() => handleMarkAsPaid(haulingBid._id, haulingBid.amount)}
+                                  disabled={bidActionLoading === haulingBid._id}
+                                  className="w-full px-4 py-3 bg-orange-600 text-white rounded-lg font-bold hover:bg-orange-700 transition-all disabled:opacity-50"
+                                  style={{ fontFamily: 'Inter, sans-serif' }}
+                                >
+                                  {bidActionLoading === haulingBid._id ? 'Processing...' : `Mark as Paid (${formatCurrency(haulingBid.amount)})`}
+                                </button>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Receipt */}
+                          {haulingBid.receipt?.url && (
+                            <div className="mt-4 pt-4 border-t border-orange-200">
+                              <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg">
+                                <div className="flex items-center gap-2">
+                                  <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                  </svg>
+                                  <div>
+                                    <p className="text-sm font-medium text-[#101010]" style={{ fontFamily: 'Inter, sans-serif' }}>
+                                      Receipt Uploaded
+                                    </p>
+                                    {haulingBid.receipt.uploadedAt && (
+                                      <p className="text-xs text-[#707072]" style={{ fontFamily: 'Inter, sans-serif' }}>
+                                        {formatDate(haulingBid.receipt.uploadedAt)}
+                                      </p>
+                                    )}
+                                  </div>
+                                </div>
+                                <a
+                                  href={haulingBid.receipt.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700"
+                                >
+                                  View PDF
+                                </a>
+                              </div>
+                            </div>
+                          )}
+
+                          <p className="text-xs text-[#707072] mt-3" style={{ fontFamily: 'Inter, sans-serif' }}>
+                            Bid accepted on: {formatDate(haulingBid.updatedAt || haulingBid.createdAt)}
+                          </p>
+                        </div>
+                      )
+                    } else if (pendingHaulingBids.length > 0) {
+                      return (
+                        <div className="space-y-3">
+                          {pendingHaulingBids.map(bid => (
+                            <div key={bid._id} className="p-4 rounded-lg bg-[#F8F5F0] border-l-4 border-orange-400">
+                              <div className="flex justify-between items-start">
+                                <div>
+                                  <h4 className="font-bold text-[#101010]" style={{ fontFamily: 'Inter, sans-serif' }}>
+                                    {bid.vendor?.companyName || bid.vendor?.name || 'Unknown Vendor'}
+                                  </h4>
+                                  <p className="text-sm text-[#707072]" style={{ fontFamily: 'Inter, sans-serif' }}>
+                                    Bid: {formatCurrency(bid.amount)} • {bid.timelineDays > 0 ? `${bid.timelineDays} days` : 'TBD'}
+                                  </p>
+                                </div>
+                                <div className="flex gap-2">
+                                  <button
+                                    onClick={() => handleAcceptBid(bid._id)}
+                                    disabled={bidActionLoading === bid._id}
+                                    className="px-3 py-1 bg-green-600 text-white rounded text-sm font-semibold hover:bg-green-700 disabled:opacity-50"
+                                  >
+                                    Accept
+                                  </button>
+                                  <button
+                                    onClick={() => handleRejectBid(bid._id)}
+                                    disabled={bidActionLoading === bid._id}
+                                    className="px-3 py-1 bg-red-100 text-red-800 rounded text-sm font-semibold hover:bg-red-200 disabled:opacity-50"
+                                  >
+                                    Reject
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )
+                    } else {
+                      return (
+                        <div className="text-center py-8 bg-[#F8F5F0] rounded-lg">
+                          <p className="text-[#707072]" style={{ fontFamily: 'Inter, sans-serif' }}>
+                            No hauling vendor assigned yet
+                          </p>
+                        </div>
+                      )
+                    }
+                  })()}
+                </div>
+
+                {/* Assigned Vendors Section - for legacy bids without bidType */}
+                {groupedBids.legacy.filter(b => b.status === 'accepted').length > 0 && (
+                  <div className="bg-white p-6 rounded-xl shadow-md">
+                    <h3 className="text-lg font-bold text-[#101010] mb-4" style={{ fontFamily: 'Playfair Display, serif' }}>
+                      Assigned Vendor
+                    </h3>
+                    {groupedBids.legacy.filter(b => b.status === 'accepted').map(bid => (
+                      <div key={bid._id} className="p-4 rounded-lg border-2 border-green-300 bg-green-50">
+                        <div className="flex items-center gap-3 mb-4">
+                          <div className="w-10 h-10 bg-green-200 rounded-full flex items-center justify-center">
+                            <svg className="w-5 h-5 text-green-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                            </svg>
+                          </div>
+                          <div>
+                            <h4 className="font-bold text-[#101010]" style={{ fontFamily: 'Playfair Display, serif' }}>
+                              {bid.vendor?.companyName || bid.vendor?.name || 'Unknown Vendor'}
+                            </h4>
+                            <span className="px-2 py-0.5 rounded text-xs font-semibold bg-green-200 text-green-800" style={{ fontFamily: 'Inter, sans-serif' }}>
+                              Assigned
+                            </span>
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4 mb-4">
+                          <div className="bg-white p-3 rounded-lg">
+                            <p className="text-[#707072] text-xs" style={{ fontFamily: 'Inter, sans-serif' }}>Agreed Amount</p>
+                            <p className="font-bold text-[#101010] text-lg" style={{ fontFamily: 'Inter, sans-serif' }}>
+                              {formatCurrency(bid.amount)}
+                            </p>
+                          </div>
+                          <div className="bg-white p-3 rounded-lg">
+                            <p className="text-[#707072] text-xs" style={{ fontFamily: 'Inter, sans-serif' }}>Timeline</p>
+                            <p className="font-bold text-[#101010] text-lg" style={{ fontFamily: 'Inter, sans-serif' }}>
+                              {bid.timelineDays > 0 ? `${bid.timelineDays} days` : 'TBD'}
+                            </p>
+                          </div>
+                        </div>
+                        {bid.isPaid ? (
+                          <div className="flex items-center gap-2 p-3 bg-green-100 rounded-lg">
+                            <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <p className="text-sm font-semibold text-green-800" style={{ fontFamily: 'Inter, sans-serif' }}>
+                              Paid: {formatCurrency(bid.paidAmount || bid.amount)}
+                            </p>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => handleMarkAsPaid(bid._id, bid.amount)}
+                            disabled={bidActionLoading === bid._id}
+                            className="w-full px-4 py-3 bg-[#e6c35a] text-black rounded-lg font-bold hover:bg-[#edd88c] transition-all disabled:opacity-50"
+                            style={{ fontFamily: 'Inter, sans-serif' }}
+                          >
+                            {bidActionLoading === bid._id ? 'Processing...' : `Mark as Paid (${formatCurrency(bid.amount)})`}
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        )}
+
       </div>
 
       {showDepositModal && (
@@ -1435,6 +2079,107 @@ function AgentJobDetailPage() {
                   </div>
                 </>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Confirmation Modal */}
+      {confirmModal.show && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6">
+            <div className="text-center mb-6">
+              <div className={`w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center ${
+                confirmModal.type === 'accept' ? 'bg-green-100' :
+                confirmModal.type === 'reject' ? 'bg-red-100' : 'bg-yellow-100'
+              }`}>
+                {confirmModal.type === 'accept' ? (
+                  <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                ) : confirmModal.type === 'reject' ? (
+                  <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                ) : (
+                  <svg className="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                )}
+              </div>
+              <h3 className="text-xl font-bold text-[#101010] mb-2" style={{ fontFamily: 'Playfair Display, serif' }}>
+                {confirmModal.type === 'accept' ? 'Accept This Bid?' :
+                 confirmModal.type === 'reject' ? 'Reject This Bid?' : 'Delete This Photo?'}
+              </h3>
+              <p className="text-[#707072]" style={{ fontFamily: 'Inter, sans-serif' }}>
+                {confirmModal.type === 'accept' ? 'All other bids will be automatically rejected.' :
+                 confirmModal.type === 'reject' ? 'This action cannot be undone.' : 'This photo will be permanently removed.'}
+              </p>
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setConfirmModal({ show: false, type: '', bidId: null, photoIndex: null })}
+                className="flex-1 px-6 py-3 bg-white border-2 border-[#707072] text-[#101010] rounded-lg font-semibold hover:bg-gray-50 transition-all"
+                style={{ fontFamily: 'Inter, sans-serif' }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  if (confirmModal.type === 'accept') confirmAcceptBid()
+                  else if (confirmModal.type === 'reject') confirmRejectBid()
+                  else if (confirmModal.type === 'deletePhoto') confirmDeletePhoto()
+                }}
+                className={`flex-1 px-6 py-3 rounded-lg font-bold transition-all ${
+                  confirmModal.type === 'accept' ? 'bg-green-600 text-white hover:bg-green-700' :
+                  confirmModal.type === 'reject' ? 'bg-red-600 text-white hover:bg-red-700' :
+                  'bg-red-600 text-white hover:bg-red-700'
+                }`}
+                style={{ fontFamily: 'Inter, sans-serif' }}
+              >
+                {confirmModal.type === 'accept' ? 'Yes, Accept' :
+                 confirmModal.type === 'reject' ? 'Yes, Reject' : 'Yes, Delete'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Notification Modal */}
+      {notificationModal.show && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-sm w-full p-6">
+            <div className="text-center">
+              <div className={`w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center ${
+                notificationModal.type === 'error' ? 'bg-red-100' : 'bg-green-100'
+              }`}>
+                {notificationModal.type === 'error' ? (
+                  <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                ) : (
+                  <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                )}
+              </div>
+              <h3 className="text-xl font-bold text-[#101010] mb-2" style={{ fontFamily: 'Playfair Display, serif' }}>
+                {notificationModal.title}
+              </h3>
+              <p className="text-[#707072] mb-6" style={{ fontFamily: 'Inter, sans-serif' }}>
+                {notificationModal.message}
+              </p>
+              <button
+                onClick={() => setNotificationModal({ show: false, type: '', title: '', message: '' })}
+                className={`w-full px-6 py-3 rounded-lg font-bold transition-all ${
+                  notificationModal.type === 'error'
+                    ? 'bg-red-600 text-white hover:bg-red-700'
+                    : 'bg-[#e6c35a] text-black hover:bg-[#edd88c]'
+                }`}
+                style={{ fontFamily: 'Inter, sans-serif' }}
+              >
+                OK
+              </button>
             </div>
           </div>
         </div>

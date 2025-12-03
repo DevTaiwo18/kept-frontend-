@@ -333,7 +333,13 @@ function ClientItemGalleryPage() {
             {item.photoGroups.map((group, groupIdx) => {
               const groupPhotos = getPhotosForGroup(group)
               const approvedItem = item.approvedItems?.find(ai => ai.itemNumber === group.itemNumber)
-              const isSold = approvedItem && item.soldPhotoIndices?.some(idx => 
+              const isSold = approvedItem && item.soldPhotoIndices?.some(idx =>
+                idx >= group.startIndex && idx <= group.endIndex
+              )
+              const isDonated = approvedItem && item.donatedPhotoIndices?.some(idx =>
+                idx >= group.startIndex && idx <= group.endIndex
+              )
+              const isHauled = approvedItem && item.hauledPhotoIndices?.some(idx =>
                 idx >= group.startIndex && idx <= group.endIndex
               )
 
@@ -348,16 +354,23 @@ function ClientItemGalleryPage() {
                         {group.photoCount} photo(s)
                       </p>
                     </div>
-                    {isSold && (
+                    {isSold ? (
                       <span className="px-4 py-2 bg-red-600 text-white rounded-lg font-bold text-sm" style={{ fontFamily: 'Inter, sans-serif' }}>
                         SOLD ✓
                       </span>
-                    )}
-                    {approvedItem && !isSold && (
+                    ) : isDonated ? (
+                      <span className="px-4 py-2 bg-purple-600 text-white rounded-lg font-bold text-sm" style={{ fontFamily: 'Inter, sans-serif' }}>
+                        DONATED ✓
+                      </span>
+                    ) : isHauled ? (
+                      <span className="px-4 py-2 bg-orange-600 text-white rounded-lg font-bold text-sm" style={{ fontFamily: 'Inter, sans-serif' }}>
+                        HAULED ✓
+                      </span>
+                    ) : approvedItem ? (
                       <span className="px-4 py-2 bg-green-100 text-green-800 rounded-lg font-bold text-sm" style={{ fontFamily: 'Inter, sans-serif' }}>
                         ${approvedItem.price || '0'}
                       </span>
-                    )}
+                    ) : null}
                   </div>
 
                   {approvedItem && (
@@ -379,6 +392,9 @@ function ClientItemGalleryPage() {
                     {groupPhotos.map((photo, photoIdx) => {
                       const actualPhotoIndex = group.startIndex + photoIdx
                       const isPhotoSold = item.soldPhotoIndices?.includes(actualPhotoIndex)
+                      const isPhotoDonated = item.donatedPhotoIndices?.includes(actualPhotoIndex)
+                      const isPhotoHauled = item.hauledPhotoIndices?.includes(actualPhotoIndex)
+                      const isPhotoUnavailable = isPhotoSold || isPhotoDonated || isPhotoHauled
 
                       return (
                         <div key={photoIdx} className="relative group">
@@ -386,17 +402,31 @@ function ClientItemGalleryPage() {
                             src={photo}
                             alt={`${group.title} - Photo ${photoIdx + 1}`}
                             className={`w-full h-64 object-cover rounded-lg border-2 transition-all cursor-pointer ${
-                              isPhotoSold
+                              isPhotoUnavailable
                                 ? 'border-gray-300 opacity-60 grayscale'
                                 : 'border-gray-200 hover:border-[#e6c35a]'
                             }`}
-                            onClick={() => !isPhotoSold && window.open(photo, '_blank')}
+                            onClick={() => !isPhotoUnavailable && window.open(photo, '_blank')}
                           />
-                          
+
                           {isPhotoSold && (
                             <div className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-lg">
                               <div className="bg-red-600 text-white px-3 py-1 rounded-lg font-bold text-sm shadow-lg" style={{ fontFamily: 'Inter, sans-serif' }}>
                                 SOLD
+                              </div>
+                            </div>
+                          )}
+                          {isPhotoDonated && (
+                            <div className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-lg">
+                              <div className="bg-purple-600 text-white px-3 py-1 rounded-lg font-bold text-sm shadow-lg" style={{ fontFamily: 'Inter, sans-serif' }}>
+                                DONATED
+                              </div>
+                            </div>
+                          )}
+                          {isPhotoHauled && (
+                            <div className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-lg">
+                              <div className="bg-orange-600 text-white px-3 py-1 rounded-lg font-bold text-sm shadow-lg" style={{ fontFamily: 'Inter, sans-serif' }}>
+                                HAULED
                               </div>
                             </div>
                           )}

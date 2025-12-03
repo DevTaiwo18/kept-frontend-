@@ -1,20 +1,21 @@
 import AIItemCard from './AIItemCard'
 
-function AIReviewSection({ 
-  item, 
-  newAiItems, 
-  editedItems, 
-  selectedItems, 
-  onEditItem, 
-  onEditDimension, 
-  onEditWeight, 
-  onEditTags, 
+function AIReviewSection({
+  item,
+  newAiItems,
+  editedItems,
+  selectedItems,
+  onEditItem,
+  onEditDimension,
+  onEditWeight,
+  onEditTags,
   onToggleSelect,
   onToggleSelectAll,
   onBatchApprove,
   isApproving,
   approveError,
-  setApproveError
+  setApproveError,
+  isInFinalStage
 }) {
   const selectedCount = Object.values(selectedItems).filter(v => v).length
   const totalNewItems = newAiItems.length
@@ -47,13 +48,15 @@ function AIReviewSection({
                 {item.approvedItems && item.approvedItems.length > 0 && ` • ${item.approvedItems.length} already approved`}
               </p>
             </div>
-            <button
-              onClick={onToggleSelectAll}
-              className="text-xs px-3 py-1.5 bg-white border border-green-300 rounded text-green-800 hover:bg-green-50"
-              style={{ fontFamily: 'Inter, sans-serif' }}
-            >
-              {Object.values(selectedItems).every(v => v) ? 'Deselect All' : 'Select All'}
-            </button>
+            {!isInFinalStage && (
+              <button
+                onClick={onToggleSelectAll}
+                className="text-xs px-3 py-1.5 bg-white border border-green-300 rounded text-green-800 hover:bg-green-50"
+                style={{ fontFamily: 'Inter, sans-serif' }}
+              >
+                {Object.values(selectedItems).every(v => v) ? 'Deselect All' : 'Select All'}
+              </button>
+            )}
           </div>
         </div>
 
@@ -83,14 +86,16 @@ function AIReviewSection({
             </div>
           )}
 
-          <button
-            onClick={onBatchApprove}
-            disabled={isApproving || selectedCount === 0 || !allSelectedHavePrice}
-            className="w-full px-6 py-4 bg-green-600 text-white rounded-lg font-bold hover:bg-green-700 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-            style={{ fontFamily: 'Inter, sans-serif' }}
-          >
-            {isApproving ? 'Approving...' : `✓ Approve ${selectedCount} Item${selectedCount !== 1 ? 's' : ''}`}
-          </button>
+          {!isInFinalStage && (
+            <button
+              onClick={onBatchApprove}
+              disabled={isApproving || selectedCount === 0 || !allSelectedHavePrice}
+              className="w-full px-6 py-4 bg-green-600 text-white rounded-lg font-bold hover:bg-green-700 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{ fontFamily: 'Inter, sans-serif' }}
+            >
+              {isApproving ? 'Approving...' : `✓ Approve ${selectedCount} Item${selectedCount !== 1 ? 's' : ''}`}
+            </button>
+          )}
 
           {!allSelectedHavePrice && selectedCount > 0 && (
             <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">

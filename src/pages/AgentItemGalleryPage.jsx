@@ -43,6 +43,7 @@ function AgentItemGalleryPage() {
   const [selectedItems, setSelectedItems] = useState({})
 
   const [isTogglingOnlineSale, setIsTogglingOnlineSale] = useState(false)
+  const [showOnlineSaleModal, setShowOnlineSaleModal] = useState(false)
 
   const handleLogout = () => {
     clearAuth()
@@ -115,6 +116,7 @@ function AgentItemGalleryPage() {
 
     try {
       setIsTogglingOnlineSale(true)
+      setShowOnlineSaleModal(false)
       await toggleOnlineSale(job._id)
       const jobId = typeof item.job === 'string' ? item.job : item.job._id || item.job
       await loadJob(jobId)
@@ -282,6 +284,9 @@ function AgentItemGalleryPage() {
 
   const isApproved = item && item.status === 'approved'
 
+  // Check if job is in final stages (payout_processing or closing)
+  const isInFinalStage = job?.stage === 'payout_processing' || job?.stage === 'closing'
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-[#F8F5F0] flex items-center justify-center">
@@ -387,9 +392,10 @@ function AgentItemGalleryPage() {
             </div>
           </div>
           <div className="flex flex-wrap gap-3">
-            {job && (
+            {/* Show Online Sale button: in online_sale stage OR in estate_sale stage (can toggle back), but NOT in final stages */}
+            {job && (job.stage === 'online_sale' || job.stage === 'estate_sale') && !isInFinalStage && (
               <button
-                onClick={handleToggleOnlineSale}
+                onClick={() => setShowOnlineSaleModal(true)}
                 disabled={isTogglingOnlineSale}
                 className={`px-6 py-3 rounded-lg font-bold transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed ${job.isOnlineSaleActive
                   ? 'bg-green-600 text-white hover:bg-green-700'
@@ -400,14 +406,16 @@ function AgentItemGalleryPage() {
                 {isTogglingOnlineSale ? '⏳ Updating...' : job.isOnlineSaleActive ? '🟢 Online Sale: ON' : '🔴 Online Sale: OFF'}
               </button>
             )}
-            <button
-              onClick={() => setShowUploadModal(true)}
-              className="px-6 py-3 bg-[#e6c35a] text-black rounded-lg font-bold hover:bg-[#edd88c] transition-all shadow-md"
-              style={{ fontFamily: 'Inter, sans-serif' }}
-            >
-              + Add New Item
-            </button>
-            {isApproved && (
+            {!isInFinalStage && (
+              <button
+                onClick={() => setShowUploadModal(true)}
+                className="px-6 py-3 bg-[#e6c35a] text-black rounded-lg font-bold hover:bg-[#edd88c] transition-all shadow-md"
+                style={{ fontFamily: 'Inter, sans-serif' }}
+              >
+                + Add New Item
+              </button>
+            )}
+            {isApproved && !isInFinalStage && (
               <button
                 onClick={() => setShowReopenModal(true)}
                 className="px-6 py-3 bg-orange-600 text-white rounded-lg font-bold hover:bg-orange-700 transition-all shadow-md"
@@ -439,12 +447,14 @@ function AgentItemGalleryPage() {
           item={item}
           onAnalyze={handleAnalyze}
           isAnalyzing={isAnalyzing}
+          isInFinalStage={isInFinalStage}
         />
 
         {job && (
           <SaleTimeframesSection
             job={job}
             onUpdate={loadItem}
+            isInFinalStage={isInFinalStage}
           />
         )}
 
@@ -452,6 +462,7 @@ function AgentItemGalleryPage() {
           <HaulerVideosSection
             job={job}
             onUpdate={loadItem}
+            isInFinalStage={isInFinalStage}
           />
         )}
 
@@ -492,6 +503,7 @@ function AgentItemGalleryPage() {
           isApproving={isApproving}
           approveError={approveError}
           setApproveError={setApproveError}
+          isInFinalStage={isInFinalStage}
         />
 
         {(!item.photoGroups || item.photoGroups.length === 0) && (
@@ -535,6 +547,61 @@ function AgentItemGalleryPage() {
         reopenError={reopenError}
         setReopenError={setReopenError}
       />
+
+      {/* Online Sale Toggle Confirmation Modal */}
+      {showOnlineSaleModal && job && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6">
+            <div className="text-center mb-6">
+              <div className={`w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center ${
+                job.isOnlineSaleActive ? 'bg-red-100' : 'bg-green-100'
+              }`}>
+                {job.isOnlineSaleActive ? (
+                  <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                  </svg>
+                ) : (
+                  <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                )}
+              </div>
+              <h3
+                className="text-xl font-bold text-[#101010] mb-2"
+                style={{ fontFamily: 'Playfair Display, serif' }}
+              >
+                {job.isOnlineSaleActive ? 'Turn Off Online Sale?' : 'Turn On Online Sale?'}
+              </h3>
+              <p className="text-[#707072]" style={{ fontFamily: 'Inter, sans-serif' }}>
+                {job.isOnlineSaleActive
+                  ? 'This will hide all approved items from clients. They will no longer be able to purchase items online.'
+                  : 'This will make all approved items visible to clients. They will be able to browse and purchase items online.'
+                }
+              </p>
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowOnlineSaleModal(false)}
+                className="flex-1 px-4 py-3 border border-[#707072] text-[#707072] rounded-lg font-semibold hover:bg-gray-50 transition-all"
+                style={{ fontFamily: 'Inter, sans-serif' }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleToggleOnlineSale}
+                className={`flex-1 px-4 py-3 rounded-lg font-semibold transition-all ${
+                  job.isOnlineSaleActive
+                    ? 'bg-red-600 text-white hover:bg-red-700'
+                    : 'bg-green-600 text-white hover:bg-green-700'
+                }`}
+                style={{ fontFamily: 'Inter, sans-serif' }}
+              >
+                {job.isOnlineSaleActive ? 'Yes, Turn Off' : 'Yes, Turn On'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

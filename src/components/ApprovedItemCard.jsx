@@ -7,8 +7,12 @@ function ApprovedItemCard({ approvedItem, item, job, onMarkAsSold }) {
 
   const photoIndices = approvedItem.photoIndices || []
   const isSold = photoIndices.some(photoIdx => item.soldPhotoIndices?.includes(photoIdx))
-  
-  const showEstateSaleControls = job && !job.isOnlineSaleActive && !isSold
+  const isDonated = photoIndices.some(photoIdx => item.donatedPhotoIndices?.includes(photoIdx))
+  const isHauled = photoIndices.some(photoIdx => item.hauledPhotoIndices?.includes(photoIdx))
+
+  // Only show estate sale controls if job is in estate_sale stage and item is not sold/donated/hauled
+  const isInEstateSaleStage = job?.stage === 'estate_sale'
+  const showEstateSaleControls = job && isInEstateSaleStage && !isSold && !isDonated && !isHauled
 
   const handleMarkAsSold = async () => {
     if (!estateSalePrice || parseFloat(estateSalePrice) <= 0) {
@@ -83,6 +87,18 @@ function ApprovedItemCard({ approvedItem, item, job, onMarkAsSold }) {
                 </span>
               )}
             </div>
+          ) : isDonated ? (
+            <div>
+              <span className="px-4 py-2 bg-purple-600 text-white rounded-lg font-bold text-sm block" style={{ fontFamily: 'Inter, sans-serif' }}>
+                DONATED ✓
+              </span>
+            </div>
+          ) : isHauled ? (
+            <div>
+              <span className="px-4 py-2 bg-orange-600 text-white rounded-lg font-bold text-sm block" style={{ fontFamily: 'Inter, sans-serif' }}>
+                HAULED ✓
+              </span>
+            </div>
           ) : (
             <span className="px-4 py-2 bg-green-100 text-green-800 rounded-lg font-bold text-lg" style={{ fontFamily: 'Inter, sans-serif' }}>
               ${approvedItem.price || '0'}
@@ -94,22 +110,39 @@ function ApprovedItemCard({ approvedItem, item, job, onMarkAsSold }) {
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 mb-4">
         {photoIndices.map((photoIdx, photoIndex) => {
           const isPhotoSold = item.soldPhotoIndices?.includes(photoIdx)
+          const isPhotoDonated = item.donatedPhotoIndices?.includes(photoIdx)
+          const isPhotoHauled = item.hauledPhotoIndices?.includes(photoIdx)
+          const isPhotoUnavailable = isPhotoSold || isPhotoDonated || isPhotoHauled
           return (
             <div key={photoIndex} className="relative group">
               <img
                 src={item.photos[photoIdx]}
                 alt={`${approvedItem.title} - Photo ${photoIndex + 1}`}
                 className={`w-full h-48 object-cover rounded-lg border-2 transition-all cursor-pointer ${
-                  isPhotoSold
+                  isPhotoUnavailable
                     ? 'border-gray-300 opacity-60 grayscale'
                     : 'border-gray-200 hover:border-[#e6c35a]'
                 }`}
-                onClick={() => !isPhotoSold && window.open(item.photos[photoIdx], '_blank')}
+                onClick={() => !isPhotoUnavailable && window.open(item.photos[photoIdx], '_blank')}
               />
               {isPhotoSold && (
                 <div className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-lg">
                   <div className="bg-red-600 text-white px-3 py-1 rounded-lg font-bold text-sm shadow-lg" style={{ fontFamily: 'Inter, sans-serif' }}>
                     SOLD
+                  </div>
+                </div>
+              )}
+              {isPhotoDonated && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-lg">
+                  <div className="bg-purple-600 text-white px-3 py-1 rounded-lg font-bold text-sm shadow-lg" style={{ fontFamily: 'Inter, sans-serif' }}>
+                    DONATED
+                  </div>
+                </div>
+              )}
+              {isPhotoHauled && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-lg">
+                  <div className="bg-orange-600 text-white px-3 py-1 rounded-lg font-bold text-sm shadow-lg" style={{ fontFamily: 'Inter, sans-serif' }}>
+                    HAULED
                   </div>
                 </div>
               )}

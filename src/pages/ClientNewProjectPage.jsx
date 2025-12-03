@@ -57,10 +57,15 @@ function ClientNewProjectPage() {
     setIsLoading(true)
 
     try {
+      // Prepend +1 to phone number for backend
+      const phoneWithCountryCode = formData.contactPhone.startsWith('+1')
+        ? formData.contactPhone
+        : `+1${formData.contactPhone.replace(/^\+1/, '')}`
+
       const jobData = {
         contractSignor: formData.contractSignor,
         propertyAddress: formData.propertyAddress,
-        contactPhone: formData.contactPhone,
+        contactPhone: phoneWithCountryCode,
         contactEmail: formData.contactEmail,
         desiredCompletionDate: formData.desiredCompletionDate,
         services: {
@@ -180,16 +185,21 @@ function ClientNewProjectPage() {
                   <label className="block text-sm font-semibold text-[#101010] mb-2" style={{ fontFamily: 'Inter, sans-serif' }}>
                     Contact Phone *
                   </label>
-                  <input
-                    type="tel"
-                    required
-                    disabled={isLoading}
-                    value={formData.contactPhone}
-                    onChange={(e) => setFormData({...formData, contactPhone: e.target.value})}
-                    className="w-full px-4 py-3 border border-[#707072]/30 rounded-lg focus:outline-none focus:border-[#e6c35a] focus:ring-2 focus:ring-[#e6c35a]/20"
-                    style={{ fontFamily: 'Inter, sans-serif' }}
-                    placeholder="(513) 555-1234"
-                  />
+                  <div className="flex">
+                    <span className="inline-flex items-center px-4 py-3 border border-r-0 border-[#707072]/30 rounded-l-lg bg-gray-100 text-[#101010] font-semibold" style={{ fontFamily: 'Inter, sans-serif' }}>
+                      +1
+                    </span>
+                    <input
+                      type="tel"
+                      required
+                      disabled={isLoading}
+                      value={formData.contactPhone}
+                      onChange={(e) => setFormData({...formData, contactPhone: e.target.value})}
+                      className="w-full px-4 py-3 border border-[#707072]/30 rounded-r-lg focus:outline-none focus:border-[#e6c35a] focus:ring-2 focus:ring-[#e6c35a]/20"
+                      style={{ fontFamily: 'Inter, sans-serif' }}
+                      placeholder="(513) 555-1234"
+                    />
+                  </div>
                 </div>
 
                 <div>

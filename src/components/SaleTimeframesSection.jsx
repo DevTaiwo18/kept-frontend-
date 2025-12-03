@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { updateSaleTimeframes } from '../utils/clientJobsApi'
 
-function SaleTimeframesSection({ job, onUpdate }) {
+function SaleTimeframesSection({ job, onUpdate, isInFinalStage }) {
   const [isEditing, setIsEditing] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState('')
@@ -70,7 +70,7 @@ function SaleTimeframesSection({ job, onUpdate }) {
         <h3 className="text-lg font-bold text-[#101010]" style={{ fontFamily: 'Playfair Display, serif' }}>
           📅 Sale Timeframes
         </h3>
-        {!isEditing && (
+        {!isEditing && !isInFinalStage && (
           <button
             onClick={() => setIsEditing(true)}
             className="px-4 py-2 bg-[#e6c35a] text-black rounded-lg font-semibold hover:bg-[#edd88c] transition-all text-sm"

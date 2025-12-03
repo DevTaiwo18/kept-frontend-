@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { addHaulerVideo, deleteHaulerVideo, getHaulerVideos } from '../utils/clientJobsApi'
 
-function HaulerVideosSection({ job, onUpdate }) {
+function HaulerVideosSection({ job, onUpdate, isInFinalStage }) {
   const [videos, setVideos] = useState([])
   const [isAddingVideo, setIsAddingVideo] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
@@ -108,12 +108,14 @@ function HaulerVideosSection({ job, onUpdate }) {
     <div className="mb-8 bg-white p-6 rounded-xl shadow-md">
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-lg font-bold text-gray-900">Hauler Videos</h3>
-        <button
-          onClick={() => setIsAddingVideo(!isAddingVideo)}
-          className="px-4 py-2 bg-yellow-500 text-black rounded-lg font-semibold hover:bg-yellow-400 transition-all text-sm"
-        >
-          {isAddingVideo ? 'Cancel' : 'Add Video'}
-        </button>
+        {!isInFinalStage && (
+          <button
+            onClick={() => setIsAddingVideo(!isAddingVideo)}
+            className="px-4 py-2 bg-yellow-500 text-black rounded-lg font-semibold hover:bg-yellow-400 transition-all text-sm"
+          >
+            {isAddingVideo ? 'Cancel' : 'Add Video'}
+          </button>
+        )}
       </div>
 
       {error && (
@@ -229,12 +231,14 @@ function HaulerVideosSection({ job, onUpdate }) {
                       Uploaded: {uploadDate}
                     </p>
                   )}
-                  <button
-                    onClick={() => setDeleteConfirm(videoId)}
-                    className="w-full px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-semibold hover:bg-red-700 transition-all"
-                  >
-                    Delete Video
-                  </button>
+                  {!isInFinalStage && (
+                    <button
+                      onClick={() => setDeleteConfirm(videoId)}
+                      className="w-full px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-semibold hover:bg-red-700 transition-all"
+                    >
+                      Delete Video
+                    </button>
+                  )}
                 </div>
               </div>
             )
