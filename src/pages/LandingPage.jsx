@@ -213,7 +213,7 @@ function LandingPage() {
           <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-6">
             {[
               { step: '01', icon: '📋', title: 'Walkthrough', desc: 'We assess your items and create a tailored plan for your estate.' },
-              { step: '02', icon: '🏷️', title: 'Sale', desc: 'Items are cataloged with AI, priced fairly, and sold online.' },
+              { step: '02', icon: '🏷️', title: 'Sale', desc: 'Items are cataloged with AI, priced fairly, and sold online and in person.' },
               { step: '03', icon: '♻️', title: 'Donation', desc: 'Unsold items go to trusted partners. You get tax receipts.' },
               { step: '04', icon: '✅', title: 'Clear-Out', desc: 'Complete property clearing with full transparency and reports.' },
               { step: '05', icon: '🏠', title: 'Home Sale', desc: 'We help prepare and coordinate the sale of the property itself.' }
