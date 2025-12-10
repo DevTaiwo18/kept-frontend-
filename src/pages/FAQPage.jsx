@@ -128,7 +128,7 @@ function FAQPage() {
                       {faq.question}
                     </span>
                     <span
-                      className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 ${
+                      className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 ${
                         isOpen ? 'bg-[#e6c35a] rotate-180' : 'bg-[#F8F5F0]'
                       }`}
                     >

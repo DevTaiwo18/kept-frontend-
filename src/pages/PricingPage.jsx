@@ -72,7 +72,7 @@ function PricingPage() {
               <div className="space-y-4 max-w-md mx-auto text-left">
                 {['Consultation', 'Inventory', 'Campaign', 'Auction', 'Estate Sale', 'Donation', 'Home Clear-out Management'].map((item, i) => (
                   <div key={i} className="flex items-center gap-3 py-3 border-b border-gray-200">
-                    <svg className="w-5 h-5 text-[#e6c35a] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-5 h-5 text-[#e6c35a] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
                     <span className="text-[#101010]" style={{ fontFamily: 'Inter, sans-serif' }}>{item}</span>

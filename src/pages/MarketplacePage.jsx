@@ -108,7 +108,7 @@ function MarketplacePage() {
   const hasActiveFilters = searchQuery || category !== 'All' || appliedMinPrice || appliedMaxPrice || sortBy !== 'new'
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-[#F8F5F0]">
+    <div className="min-h-screen bg-linear-to-b from-white to-[#F8F5F0]">
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="mb-8">
           <h1 
