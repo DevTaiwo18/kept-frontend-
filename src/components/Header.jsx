@@ -114,6 +114,20 @@ function Header() {
               About
             </Link>
             <Link
+              to="/pricing"
+              className="px-4 py-2 rounded-lg hover:bg-[#edd88c] hover:text-black transition-all text-sm font-medium"
+              style={{ fontFamily: 'Inter, sans-serif' }}
+            >
+              Pricing
+            </Link>
+            <Link
+              to="/faq"
+              className="px-4 py-2 rounded-lg hover:bg-[#edd88c] hover:text-black transition-all text-sm font-medium"
+              style={{ fontFamily: 'Inter, sans-serif' }}
+            >
+              FAQ
+            </Link>
+            <Link
               to="/contact"
               className="px-4 py-2 rounded-lg hover:bg-[#edd88c] hover:text-black transition-all text-sm font-medium"
               style={{ fontFamily: 'Inter, sans-serif' }}
@@ -236,6 +250,22 @@ function Header() {
               style={{ fontFamily: 'Inter, sans-serif' }}
             >
               About
+            </Link>
+            <Link
+              to="/pricing"
+              onClick={closeMobileMenu}
+              className="block px-4 py-3 rounded-lg hover:bg-[#707072]/30 transition-colors text-base font-medium"
+              style={{ fontFamily: 'Inter, sans-serif' }}
+            >
+              Pricing
+            </Link>
+            <Link
+              to="/faq"
+              onClick={closeMobileMenu}
+              className="block px-4 py-3 rounded-lg hover:bg-[#707072]/30 transition-colors text-base font-medium"
+              style={{ fontFamily: 'Inter, sans-serif' }}
+            >
+              FAQ
             </Link>
             <Link
               to="/contact"

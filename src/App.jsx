@@ -5,6 +5,8 @@ import ProtectedRoute from './components/ProtectedRoute'
 import ScrollToTop from './components/ScrollToTop'
 import LandingPage from './pages/LandingPage'
 import AboutPage from './pages/AboutPage'
+import PricingPage from './pages/PricingPage'
+import FAQPage from './pages/FAQPage'
 import ContactPage from './pages/ContactPage'
 import LoginPage from './pages/LoginPage'
 import SignupPage from './pages/SignupPage'
@@ -158,6 +160,26 @@ function App() {
             <Header />
             <main className="flex-grow">
               <AboutPage />
+            </main>
+            <Footer />
+          </div>
+        } />
+
+        <Route path="/pricing" element={
+          <div className="min-h-screen bg-[#F8F5F0] flex flex-col">
+            <Header />
+            <main className="flex-grow">
+              <PricingPage />
+            </main>
+            <Footer />
+          </div>
+        } />
+
+        <Route path="/faq" element={
+          <div className="min-h-screen bg-[#F8F5F0] flex flex-col">
+            <Header />
+            <main className="flex-grow">
+              <FAQPage />
             </main>
             <Footer />
           </div>

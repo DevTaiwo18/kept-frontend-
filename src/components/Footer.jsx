@@ -30,6 +30,12 @@ function Footer() {
             <Link to="/about" className="text-sm hover:text-[#e6c35a] transition-colors" style={{ fontFamily: 'Inter, sans-serif' }}>
               About
             </Link>
+            <Link to="/pricing" className="text-sm hover:text-[#e6c35a] transition-colors" style={{ fontFamily: 'Inter, sans-serif' }}>
+              Pricing
+            </Link>
+            <Link to="/faq" className="text-sm hover:text-[#e6c35a] transition-colors" style={{ fontFamily: 'Inter, sans-serif' }}>
+              FAQ
+            </Link>
             <Link to="/contact" className="text-sm hover:text-[#e6c35a] transition-colors" style={{ fontFamily: 'Inter, sans-serif' }}>
               Contact
             </Link>
@@ -124,6 +130,12 @@ function Footer() {
               </Link>
               <Link to="/about" className="hover:text-[#edd88c] transition-colors">
                 About Us
+              </Link>
+              <Link to="/pricing" className="hover:text-[#edd88c] transition-colors">
+                Pricing
+              </Link>
+              <Link to="/faq" className="hover:text-[#edd88c] transition-colors">
+                FAQ
               </Link>
               <Link to="/contact" className="hover:text-[#edd88c] transition-colors">
                 Contact
