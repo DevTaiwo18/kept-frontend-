@@ -208,14 +208,14 @@ function CheckoutPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-white to-[#F8F5F0] flex items-center justify-center">
+      <div className="min-h-screen bg-linear-to-b from-white to-[#F8F5F0] flex items-center justify-center">
         <p className="text-[#707072]" style={{ fontFamily: 'Inter, sans-serif' }}>Loading checkout...</p>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-[#F8F5F0]">
+    <div className="min-h-screen bg-linear-to-b from-white to-[#F8F5F0]">
       <div className="max-w-6xl mx-auto px-4 py-8">
         <button
           onClick={() => navigate('/cart')}
@@ -231,7 +231,7 @@ function CheckoutPage() {
         </h1>
 
         {pickupAddress && (
-          <div className="mb-6 p-6 bg-gradient-to-r from-blue-50 to-blue-100 border-2 border-blue-200 rounded-xl">
+          <div className="mb-6 p-6 bg-linear-to-r from-blue-50 to-blue-100 border-2 border-blue-200 rounded-xl">
             <div className="flex items-start gap-4">
               <div className="text-4xl">📍</div>
               <div className="flex-1">

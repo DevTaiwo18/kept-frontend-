@@ -148,7 +148,7 @@ function App() {
         <Route path="/" element={
           <div className="min-h-screen bg-[#F8F5F0] flex flex-col">
             <Header />
-            <main className="flex-grow">
+            <main className="grow">
               <LandingPage />
             </main>
             <Footer />
@@ -158,7 +158,7 @@ function App() {
         <Route path="/about" element={
           <div className="min-h-screen bg-[#F8F5F0] flex flex-col">
             <Header />
-            <main className="flex-grow">
+            <main className="grow">
               <AboutPage />
             </main>
             <Footer />
@@ -168,7 +168,7 @@ function App() {
         <Route path="/pricing" element={
           <div className="min-h-screen bg-[#F8F5F0] flex flex-col">
             <Header />
-            <main className="flex-grow">
+            <main className="grow">
               <PricingPage />
             </main>
             <Footer />
@@ -178,7 +178,7 @@ function App() {
         <Route path="/faq" element={
           <div className="min-h-screen bg-[#F8F5F0] flex flex-col">
             <Header />
-            <main className="flex-grow">
+            <main className="grow">
               <FAQPage />
             </main>
             <Footer />
@@ -188,7 +188,7 @@ function App() {
         <Route path="/contact" element={
           <div className="min-h-screen bg-[#F8F5F0] flex flex-col">
             <Header />
-            <main className="flex-grow">
+            <main className="grow">
               <ContactPage />
             </main>
             <Footer />
@@ -198,7 +198,7 @@ function App() {
         <Route path="/login" element={
           <div className="min-h-screen bg-[#F8F5F0] flex flex-col">
             <Header />
-            <main className="flex-grow">
+            <main className="grow">
               <LoginPage />
             </main>
             <Footer />
@@ -208,7 +208,7 @@ function App() {
         <Route path="/signup" element={
           <div className="min-h-screen bg-[#F8F5F0] flex flex-col">
             <Header />
-            <main className="flex-grow">
+            <main className="grow">
               <SignupPage />
             </main>
             <Footer />
@@ -218,7 +218,7 @@ function App() {
         <Route path="/browse" element={
           <div className="min-h-screen bg-[#F8F5F0] flex flex-col">
             <Header />
-            <main className="flex-grow">
+            <main className="grow">
               <MarketplacePage />
             </main>
             <Footer />
@@ -228,7 +228,7 @@ function App() {
         <Route path="/browse/item/:id" element={
           <div className="min-h-screen bg-[#F8F5F0] flex flex-col">
             <Header />
-            <main className="flex-grow">
+            <main className="grow">
               <MarketplaceItemDetailPage />
             </main>
             <Footer />
@@ -238,7 +238,7 @@ function App() {
         <Route path="/cart" element={
           <div className="min-h-screen bg-[#F8F5F0] flex flex-col">
             <Header />
-            <main className="flex-grow">
+            <main className="grow">
               <CartPage />
             </main>
             <Footer />
@@ -248,7 +248,7 @@ function App() {
         <Route path="/checkout" element={
           <div className="min-h-screen bg-[#F8F5F0] flex flex-col">
             <Header />
-            <main className="flex-grow">
+            <main className="grow">
               <CheckoutPage />
             </main>
             <Footer />
@@ -258,7 +258,7 @@ function App() {
         <Route path="/forgot-password" element={
           <div className="min-h-screen bg-[#F8F5F0] flex flex-col">
             <Header />
-            <main className="flex-grow">
+            <main className="grow">
               <ForgotPasswordPage />
             </main>
             <Footer />
@@ -268,7 +268,7 @@ function App() {
         <Route path="/reset-password" element={
           <div className="min-h-screen bg-[#F8F5F0] flex flex-col">
             <Header />
-            <main className="flex-grow">
+            <main className="grow">
               <ResetPasswordPage />
             </main>
             <Footer />
@@ -278,7 +278,7 @@ function App() {
         <Route path="/orders" element={
           <div className="min-h-screen bg-[#F8F5F0] flex flex-col">
             <Header />
-            <main className="flex-grow">
+            <main className="grow">
               <OrdersPage />
             </main>
             <Footer />
@@ -288,7 +288,7 @@ function App() {
         <Route path="/order/:id" element={
           <div className="min-h-screen bg-[#F8F5F0] flex flex-col">
             <Header />
-            <main className="flex-grow">
+            <main className="grow">
               <OrderDetailPage />
             </main>
             <Footer />
@@ -298,7 +298,7 @@ function App() {
         <Route path="/order-success" element={
           <div className="min-h-screen bg-[#F8F5F0] flex flex-col">
             <Header />
-            <main className="flex-grow">
+            <main className="grow">
               <OrderSuccessPage />
             </main>
             <Footer />

@@ -55,7 +55,7 @@ function LandingPage() {
               backgroundImage: `url('${image}')`,
             }}
           >
-            <div className="absolute inset-0 bg-gradient-to-r from-[#101010]/80 via-[#101010]/50 to-[#101010]/30"></div>
+            <div className="absolute inset-0 bg-linear-to-r from-[#101010]/80 via-[#101010]/50 to-[#101010]/30"></div>
           </div>
         ))}
 
@@ -151,7 +151,7 @@ function LandingPage() {
       </section>
 
       {!loading && featuredItems.length > 0 && (
-        <section className="py-16 px-4 bg-gradient-to-b from-white to-[#F8F5F0]">
+        <section className="py-16 px-4 bg-linear-to-b from-white to-[#F8F5F0]">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-12">
               <h2 
