@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { getAuth, clearAuth } from '../utils/auth'
+import { getAuth } from '../utils/auth'
 import { getClientJobById, updateClientJobProgress, requestClientJobDeposit } from '../utils/clientJobsApi'
 import { getJobItems, createItem, uploadItemPhotos } from '../utils/itemsApi'
 import { getBidsForJob, acceptBid, rejectBid, getDonationReceipts, markBidAsPaid } from '../utils/vendorsApi'
-import logo from '../assets/Kept House _transparent logo .png'
+import AdminLayout from '../components/AdminLayout'
 
 function AgentJobDetailPage() {
   const { id } = useParams()
@@ -40,11 +40,6 @@ function AgentJobDetailPage() {
   const [donationReceipts, setDonationReceipts] = useState([])
   const [confirmModal, setConfirmModal] = useState({ show: false, type: '', bidId: null, photoIndex: null })
   const [notificationModal, setNotificationModal] = useState({ show: false, type: '', title: '', message: '' })
-
-  const handleLogout = () => {
-    clearAuth()
-    navigate('/admin')
-  }
 
   useEffect(() => {
     loadJob()
@@ -394,31 +389,19 @@ function AgentJobDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#F8F5F0] flex items-center justify-center">
-        <p className="text-[#707072]" style={{ fontFamily: 'Inter, sans-serif' }}>
-          Loading job details...
-        </p>
-      </div>
+      <AdminLayout>
+        <div className="flex items-center justify-center py-20">
+          <p className="text-[#707072]" style={{ fontFamily: 'Inter, sans-serif' }}>
+            Loading job details...
+          </p>
+        </div>
+      </AdminLayout>
     )
   }
 
   if (error || !job) {
     return (
-      <div className="min-h-screen bg-[#F8F5F0]">
-        <header className="bg-[#101010] text-[#F8F5F0] shadow-lg">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-            <div className="flex justify-between items-center">
-              <img src={logo} alt="Kept House" className="h-12 w-auto" />
-              <button
-                onClick={handleLogout}
-                className="px-4 py-2 bg-[#707072] text-[#F8F5F0] rounded-lg text-sm font-medium hover:bg-gray-600 transition-all"
-                style={{ fontFamily: 'Inter, sans-serif' }}
-              >
-                Logout
-              </button>
-            </div>
-          </div>
-        </header>
+      <AdminLayout>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
             <p className="text-red-600" style={{ fontFamily: 'Inter, sans-serif' }}>
@@ -433,7 +416,7 @@ function AgentJobDetailPage() {
             </button>
           </div>
         </div>
-      </div>
+      </AdminLayout>
     )
   }
 
@@ -443,27 +426,7 @@ function AgentJobDetailPage() {
   const allTransactions = getAllTransactions()
 
   return (
-    <div className="min-h-screen bg-[#F8F5F0]">
-      <header className="bg-[#101010] text-[#F8F5F0] shadow-lg">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex justify-between items-center">
-            <img src={logo} alt="Kept House" className="h-12 w-auto" />
-            <div className="flex items-center gap-4">
-              <span className="text-sm text-[#e6c35a]" style={{ fontFamily: 'Inter, sans-serif' }}>
-                {auth?.user?.name} (Agent)
-              </span>
-              <button
-                onClick={handleLogout}
-                className="px-4 py-2 bg-[#707072] text-[#F8F5F0] rounded-lg text-sm font-medium hover:bg-gray-600 transition-all"
-                style={{ fontFamily: 'Inter, sans-serif' }}
-              >
-                Logout
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
-
+    <AdminLayout>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <button
           onClick={() => navigate('/dashboard/agent')}
@@ -2184,7 +2147,7 @@ function AgentJobDetailPage() {
           </div>
         </div>
       )}
-    </div>
+    </AdminLayout>
   )
 }
 

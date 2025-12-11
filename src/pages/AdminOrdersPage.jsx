@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { getAuth, clearAuth } from '../utils/auth'
+import { getAuth } from '../utils/auth'
 import { listAllOrders, updateOrderStatus, getOrderById } from '../utils/ordersApi'
-import logo from '../assets/Kept House _transparent logo .png'
+import AdminLayout from '../components/AdminLayout'
 
 function AdminOrdersPage() {
   const auth = getAuth()
@@ -26,11 +26,6 @@ function AdminOrdersPage() {
   })
   const [isUpdating, setIsUpdating] = useState(false)
   const [updateError, setUpdateError] = useState('')
-
-  const handleLogout = () => {
-    clearAuth()
-    navigate('/admin')
-  }
 
   useEffect(() => {
     loadOrders()
@@ -205,35 +200,7 @@ function AdminOrdersPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F8F5F0]">
-      <header className="bg-[#101010] text-[#F8F5F0] shadow-lg">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex justify-between items-center">
-            <img src={logo} alt="Kept House" className="h-10 sm:h-12 w-auto" />
-            <div className="flex items-center gap-2 sm:gap-4">
-              <button
-                onClick={() => navigate('/dashboard/agent')}
-                className="px-3 py-2 sm:px-4 sm:py-2 bg-white border-2 border-[#e6c35a] text-black rounded-lg text-xs sm:text-sm font-semibold hover:bg-[#e6c35a] transition-all whitespace-nowrap"
-                style={{ fontFamily: 'Inter, sans-serif' }}
-              >
-                <span className="hidden sm:inline">← Dashboard</span>
-                <span className="sm:hidden">←</span>
-              </button>
-              <span className="text-xs sm:text-sm text-[#e6c35a] truncate max-w-[80px] sm:max-w-none" style={{ fontFamily: 'Inter, sans-serif' }}>
-                {auth?.user?.name}
-              </span>
-              <button
-                onClick={handleLogout}
-                className="px-3 py-2 sm:px-4 sm:py-2 bg-[#707072] text-[#F8F5F0] rounded-lg text-xs sm:text-sm font-medium hover:bg-gray-600 transition-all"
-                style={{ fontFamily: 'Inter, sans-serif' }}
-              >
-                Logout
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
-
+    <AdminLayout>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <h1 className="text-2xl sm:text-3xl font-bold text-[#101010] mb-2" style={{ fontFamily: 'Playfair Display, serif' }}>
@@ -998,7 +965,7 @@ function AdminOrdersPage() {
           </div>
         </div>
       )}
-    </div>
+    </AdminLayout>
   )
 }
 

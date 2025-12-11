@@ -1,21 +1,17 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { getAuth, clearAuth } from '../utils/auth'
+import { useNavigate, useSearchParams } from 'react-router-dom'
+import { getAuth } from '../utils/auth'
 import { getClientJobs } from '../utils/clientJobsApi'
-import logo from '../assets/Kept House _transparent logo .png'
+import AdminLayout from '../components/AdminLayout'
 
 function AgentDashboardPage() {
+  const [searchParams] = useSearchParams()
   const [jobs, setJobs] = useState([])
   const [isLoading, setIsLoading] = useState(true)
-  const [filter, setFilter] = useState('all')
+  const [filter, setFilter] = useState(searchParams.get('filter') || 'all')
   const [searchQuery, setSearchQuery] = useState('')
   const auth = getAuth()
   const navigate = useNavigate()
-
-  const handleLogout = () => {
-    clearAuth()
-    navigate('/admin')
-  }
 
   useEffect(() => {
     loadJobs()
@@ -96,35 +92,7 @@ function AgentDashboardPage() {
   const jobsAwaitingPayment = jobs.filter(j => j.serviceFee && !j.depositPaidAt)
 
   return (
-    <div className="min-h-screen bg-[#F8F5F0]">
-      <header className="bg-[#101010] text-[#F8F5F0] shadow-lg">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex justify-between items-center">
-            <img src={logo} alt="Kept House" className="h-10 sm:h-12 w-auto" />
-            <div className="flex items-center gap-2 sm:gap-4">
-              <button
-                onClick={() => navigate('/admin/orders')}
-                className="px-3 py-2 sm:px-4 sm:py-2 bg-[#e6c35a] text-black rounded-lg text-xs sm:text-sm font-semibold hover:bg-[#edd88c] transition-all whitespace-nowrap"
-                style={{ fontFamily: 'Inter, sans-serif' }}
-              >
-                <span className="hidden sm:inline">📦 Orders</span>
-                <span className="sm:hidden">📦</span>
-              </button>
-              <span className="text-xs sm:text-sm text-[#e6c35a] truncate max-w-[80px] sm:max-w-none" style={{ fontFamily: 'Inter, sans-serif' }}>
-                {auth?.user?.name} (Agent)
-              </span>
-              <button
-                onClick={handleLogout}
-                className="px-3 py-2 sm:px-4 sm:py-2 bg-[#707072] text-[#F8F5F0] rounded-lg text-xs sm:text-sm font-medium hover:bg-gray-600 transition-all"
-                style={{ fontFamily: 'Inter, sans-serif' }}
-              >
-                Logout
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
-
+    <AdminLayout>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <h1 className="text-2xl sm:text-3xl font-bold text-[#101010] mb-2" style={{ fontFamily: 'Playfair Display, serif' }}>
@@ -139,7 +107,7 @@ function AgentDashboardPage() {
         {jobsNeedingWelcomeEmail.length > 0 && (
           <div className="mb-6 p-4 bg-blue-50 border-l-4 border-blue-500 rounded-lg">
             <div className="flex items-start gap-3">
-              <svg className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <svg className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600 shrink-0" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
                 <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
               </svg>
@@ -159,7 +127,7 @@ function AgentDashboardPage() {
         {jobsNeedingWelcomeEmail.length === 0 && jobsNeedingContract.length > 0 && (
           <div className="mb-6 p-4 bg-purple-50 border-l-4 border-purple-500 rounded-lg">
             <div className="flex items-start gap-3">
-              <svg className="w-5 h-5 sm:w-6 sm:h-6 text-purple-600 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <svg className="w-5 h-5 sm:w-6 sm:h-6 text-purple-600 shrink-0" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd" />
               </svg>
               <div>
@@ -177,7 +145,7 @@ function AgentDashboardPage() {
         {jobsNeedingWelcomeEmail.length === 0 && jobsNeedingContract.length === 0 && jobsWaitingForSignature.length > 0 && (
           <div className="mb-6 p-4 bg-amber-50 border-l-4 border-amber-500 rounded-lg">
             <div className="flex items-start gap-3">
-              <svg className="w-5 h-5 sm:w-6 sm:h-6 text-amber-600 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <svg className="w-5 h-5 sm:w-6 sm:h-6 text-amber-600 shrink-0" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
               </svg>
               <div>
@@ -196,7 +164,7 @@ function AgentDashboardPage() {
           jobsWaitingForSignature.length === 0 && jobsNeedingDepositRequest.length > 0 && (
             <div className="mb-6 p-4 bg-yellow-50 border-l-4 border-yellow-500 rounded-lg">
               <div className="flex items-start gap-3">
-                <svg className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-600 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <svg className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-600 shrink-0" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clipRule="evenodd" />
                 </svg>
@@ -217,7 +185,7 @@ function AgentDashboardPage() {
           jobsAwaitingPayment.length > 0 && (
             <div className="mb-6 p-4 bg-green-50 border-l-4 border-green-500 rounded-lg">
               <div className="flex items-start gap-3">
-                <svg className="w-5 h-5 sm:w-6 sm:h-6 text-green-600 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <svg className="w-5 h-5 sm:w-6 sm:h-6 text-green-600 shrink-0" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
                 </svg>
                 <div>
@@ -523,7 +491,7 @@ function AgentDashboardPage() {
           </div>
         )}
       </div>
-    </div>
+    </AdminLayout>
   )
 }
 

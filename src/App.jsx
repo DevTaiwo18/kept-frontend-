@@ -34,6 +34,7 @@ import OrderDetailPage from './pages/OrderDetailPage'
 import CheckoutPage from './pages/CheckoutPage'
 import AdminOrdersPage from './pages/AdminOrdersPage'
 import EmailTemplatesPage from './pages/EmailTemplatesPage'
+import CrmContactsPage from './pages/CrmContactsPage'
 import ClientWaitingPage from './pages/Clientwaitingpage'
 
 function App() {
@@ -132,6 +133,15 @@ function App() {
           element={
             <ProtectedRoute allowedRoles={['agent']}>
               <AdminOrdersPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/admin/crm"
+          element={
+            <ProtectedRoute allowedRoles={['agent']}>
+              <CrmContactsPage />
             </ProtectedRoute>
           }
         />

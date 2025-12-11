@@ -212,8 +212,8 @@ function LandingPage() {
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-6">
             {[
-              { step: '01', icon: '📋', title: 'Walkthrough', desc: 'We assess your items and create a tailored plan for your estate.' },
-              { step: '02', icon: '🏷️', title: 'Sale', desc: 'Items are cataloged with AI, priced fairly, and sold online and in person.' },
+              { step: '01', icon: '📋', title: 'Evaluation', desc: 'We assess your items and create a tailored plan for your estate.' },
+              { step: '02', icon: '🏷️', title: 'Liquidation', desc: 'Items are cataloged with AI, priced fairly, and sold via auction, online, or in person.' },
               { step: '03', icon: '♻️', title: 'Donation', desc: 'Unsold items go to trusted partners. You get tax receipts.' },
               { step: '04', icon: '✅', title: 'Clear-Out', desc: 'Complete property clearing with full transparency and reports.' },
               { step: '05', icon: '🏠', title: 'Home Sale', desc: 'We help prepare and coordinate the sale of the property itself.' }
@@ -281,7 +281,7 @@ function LandingPage() {
               We combine compassion with technology to deliver the best estate sale experience
             </p>
           </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-6">
             {[
               {
                 icon: (
@@ -318,6 +318,15 @@ function LandingPage() {
                 ),
                 title: 'Trusted Partners',
                 desc: 'Vetted donation centers and hauling services. Tax receipts provided for all donations.'
+              },
+              {
+                icon: (
+                  <svg className="w-10 h-10 text-[#e6c35a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                  </svg>
+                ),
+                title: 'One Stop Shop',
+                desc: 'Get all of your estate transition services under one roof!'
               }
             ].map((benefit, i) => (
               <div key={i} className="bg-white p-6 rounded-xl shadow-md hover:shadow-xl transition-all hover:-translate-y-1 group">
