@@ -57,11 +57,20 @@ function SaleTimeframesSection({ job, onUpdate, isInFinalStage }) {
 
   const formatDate = (dateString) => {
     if (!dateString) return 'Not set'
-    return new Date(dateString).toLocaleDateString('en-US', { 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
     })
+  }
+
+  const formatTime = (timeString) => {
+    if (!timeString) return '?'
+    const [hours, minutes] = timeString.split(':')
+    const hour = parseInt(hours, 10)
+    const ampm = hour >= 12 ? 'PM' : 'AM'
+    const hour12 = hour % 12 || 12
+    return `${hour12}:${minutes} ${ampm}`
   }
 
   return (
@@ -134,7 +143,7 @@ function SaleTimeframesSection({ job, onUpdate, isInFinalStage }) {
                     Hours
                   </p>
                   <p className="text-purple-900" style={{ fontFamily: 'Inter, sans-serif' }}>
-                    {job?.estateSaleStartTime || '?'} - {job?.estateSaleEndTime || '?'}
+                    {formatTime(job?.estateSaleStartTime)} - {formatTime(job?.estateSaleEndTime)}
                   </p>
                 </div>
               )}
