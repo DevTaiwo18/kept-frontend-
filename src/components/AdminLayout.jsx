@@ -32,7 +32,6 @@ function AdminLayout({ children }) {
   const navItems = [
     { name: 'Dashboard', path: '/dashboard/agent' },
     { name: 'Orders', path: '/admin/orders' },
-    { name: 'Email Templates', path: '/admin/email-templates' },
     { name: 'CRM', path: '/admin/crm' },
   ]
 
