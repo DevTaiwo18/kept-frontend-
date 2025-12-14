@@ -15,6 +15,8 @@ export const getItemById = async (itemId) => {
   return apiCall(`/items/${itemId}`)
 }
 
+const API_URL = import.meta.env.VITE_API_URL || 'https://kept-api-vkc7.onrender.com/api'
+
 export const uploadItemPhotos = async (itemId, files) => {
   if (!files || files.length === 0) {
     throw new Error('No files provided')
@@ -32,7 +34,7 @@ export const uploadItemPhotos = async (itemId, files) => {
 
   const token = localStorage.getItem('kh_token')
 
-  const response = await fetch(`http://localhost:4000/api/items/${itemId}/photos`, {
+  const response = await fetch(`${API_URL}/items/${itemId}/photos`, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${token}`
