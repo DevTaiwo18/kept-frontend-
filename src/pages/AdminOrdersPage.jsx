@@ -902,10 +902,18 @@ function AdminOrdersPage() {
               >
                 <option value="pending">Pending</option>
                 <option value="processing">Processing</option>
-                <option value="ready">Ready</option>
-                <option value="shipped">Shipped</option>
-                <option value="delivered">Delivered</option>
-                <option value="picked_up">Picked Up</option>
+                {selectedOrder.deliveryDetails?.type === 'pickup' ? (
+                  <>
+                    <option value="ready">Ready for Pickup</option>
+                    <option value="picked_up">Picked Up</option>
+                  </>
+                ) : (
+                  <>
+                    <option value="ready">Ready to Ship</option>
+                    <option value="shipped">Shipped</option>
+                    <option value="delivered">Delivered</option>
+                  </>
+                )}
               </select>
             </div>
 
