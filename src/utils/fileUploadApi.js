@@ -12,9 +12,6 @@ export const uploadFiles = async (files) => {
   const auth = getAuth()
   const url = `${API_URL}/files/upload`
 
-  console.log('📤 Uploading files to:', url)
-  console.log('📤 Files:', files.map(f => f.name).join(', '))
-
   const response = await fetch(url, {
     method: 'POST',
     headers: {
@@ -23,18 +20,8 @@ export const uploadFiles = async (files) => {
     body: formData,
   })
 
-  console.log('📤 Response status:', response.status)
-
   if (!response.ok) {
-    const text = await response.text()
-    console.error('📤 Upload error response:', text.substring(0, 200))
-
-    let error = {}
-    try {
-      error = JSON.parse(text)
-    } catch {
-      error = { message: `Upload failed: ${response.status}` }
-    }
+    const error = await response.json().catch(() => ({}))
     throw new Error(error.message || 'Failed to upload files')
   }
 
