@@ -56,7 +56,11 @@ export const getCrmStats = async () => {
 
 // Send bulk email to selected contacts
 export const sendBulkEmail = async (contactIds, subject, message) => {
-  const response = await fetch(`${API_BASE}/crm/send-email`, {
+  const url = `${API_BASE}/crm/send-email`
+  console.log('📧 Sending email to URL:', url)
+  console.log('📧 Contact IDs:', contactIds.length, 'contacts')
+
+  const response = await fetch(url, {
     method: 'POST',
     headers: getHeaders(),
     body: JSON.stringify({
@@ -66,8 +70,19 @@ export const sendBulkEmail = async (contactIds, subject, message) => {
     })
   })
 
+  console.log('📧 Response status:', response.status)
+
   if (!response.ok) {
-    const error = await response.json().catch(() => ({}))
+    const text = await response.text()
+    console.error('📧 Error response:', text.substring(0, 200))
+
+    // Try to parse as JSON, otherwise use raw text
+    let error = {}
+    try {
+      error = JSON.parse(text)
+    } catch {
+      error = { message: `Server error: ${response.status}` }
+    }
     throw new Error(error.message || 'Failed to send emails')
   }
 
