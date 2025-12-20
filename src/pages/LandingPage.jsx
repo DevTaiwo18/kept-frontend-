@@ -561,8 +561,7 @@ function LandingPage() {
                 className="w-full h-full object-cover"
                 controls
               >
-                <source src="/estate-video.mov" type="video/quicktime" />
-                <source src="/estate-video.mov" type="video/mp4" />
+                <source src="/estate-video.mp4" type="video/mp4" />
                 Your browser does not support the video tag.
               </video>
             </div>
