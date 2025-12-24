@@ -1406,7 +1406,7 @@ function AgentJobDetailPage() {
                         <div className="space-y-3">
                           {pendingDonationBids.map(bid => (
                             <div key={bid._id} className="p-4 rounded-lg bg-[#F8F5F0] border-l-4 border-purple-400">
-                              <div className="flex justify-between items-start">
+                              <div className="flex justify-between items-start mb-3">
                                 <div>
                                   <h4 className="font-bold text-[#101010]" style={{ fontFamily: 'Inter, sans-serif' }}>
                                     {bid.vendor?.companyName || bid.vendor?.name || 'Unknown Vendor'}
@@ -1431,6 +1431,43 @@ function AgentJobDetailPage() {
                                     Reject
                                   </button>
                                 </div>
+                              </div>
+
+                              {/* Vendor Contact & Payment Details */}
+                              <div className="pt-3 border-t border-purple-200 space-y-2">
+                                <div className="flex flex-wrap gap-3 text-sm">
+                                  {bid.vendor?.phone && (
+                                    <a href={`tel:${bid.vendor.phone}`} className="flex items-center gap-1 text-purple-700 hover:text-purple-900">
+                                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                                      </svg>
+                                      {bid.vendor.phone}
+                                    </a>
+                                  )}
+                                  {bid.vendor?.email && (
+                                    <a href={`mailto:${bid.vendor.email}`} className="flex items-center gap-1 text-purple-700 hover:text-purple-900">
+                                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                      </svg>
+                                      {bid.vendor.email}
+                                    </a>
+                                  )}
+                                </div>
+                                {bid.paymentMethod && (
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-xs text-[#707072]">Payment Method:</span>
+                                    <span className={`px-2 py-0.5 rounded text-xs font-semibold ${
+                                      bid.paymentMethod === 'cash' ? 'bg-green-100 text-green-800' :
+                                      bid.paymentMethod === 'cashapp' ? 'bg-purple-100 text-purple-800' :
+                                      bid.paymentMethod === 'bank' ? 'bg-blue-100 text-blue-800' :
+                                      'bg-gray-100 text-gray-800'
+                                    }`}>
+                                      {bid.paymentMethod === 'cash' ? 'Cash' :
+                                       bid.paymentMethod === 'cashapp' ? 'Cash App' :
+                                       bid.paymentMethod === 'bank' ? 'Bank Transfer' : bid.paymentMethod}
+                                    </span>
+                                  </div>
+                                )}
                               </div>
                             </div>
                           ))}
@@ -1631,7 +1668,7 @@ function AgentJobDetailPage() {
                         <div className="space-y-3">
                           {pendingHaulingBids.map(bid => (
                             <div key={bid._id} className="p-4 rounded-lg bg-[#F8F5F0] border-l-4 border-orange-400">
-                              <div className="flex justify-between items-start">
+                              <div className="flex justify-between items-start mb-3">
                                 <div>
                                   <h4 className="font-bold text-[#101010]" style={{ fontFamily: 'Inter, sans-serif' }}>
                                     {bid.vendor?.companyName || bid.vendor?.name || 'Unknown Vendor'}
@@ -1656,6 +1693,43 @@ function AgentJobDetailPage() {
                                     Reject
                                   </button>
                                 </div>
+                              </div>
+
+                              {/* Vendor Contact & Payment Details */}
+                              <div className="pt-3 border-t border-orange-200 space-y-2">
+                                <div className="flex flex-wrap gap-3 text-sm">
+                                  {bid.vendor?.phone && (
+                                    <a href={`tel:${bid.vendor.phone}`} className="flex items-center gap-1 text-orange-700 hover:text-orange-900">
+                                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                                      </svg>
+                                      {bid.vendor.phone}
+                                    </a>
+                                  )}
+                                  {bid.vendor?.email && (
+                                    <a href={`mailto:${bid.vendor.email}`} className="flex items-center gap-1 text-orange-700 hover:text-orange-900">
+                                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                      </svg>
+                                      {bid.vendor.email}
+                                    </a>
+                                  )}
+                                </div>
+                                {bid.paymentMethod && (
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-xs text-[#707072]">Payment Method:</span>
+                                    <span className={`px-2 py-0.5 rounded text-xs font-semibold ${
+                                      bid.paymentMethod === 'cash' ? 'bg-green-100 text-green-800' :
+                                      bid.paymentMethod === 'cashapp' ? 'bg-purple-100 text-purple-800' :
+                                      bid.paymentMethod === 'bank' ? 'bg-blue-100 text-blue-800' :
+                                      'bg-gray-100 text-gray-800'
+                                    }`}>
+                                      {bid.paymentMethod === 'cash' ? 'Cash' :
+                                       bid.paymentMethod === 'cashapp' ? 'Cash App' :
+                                       bid.paymentMethod === 'bank' ? 'Bank Transfer' : bid.paymentMethod}
+                                    </span>
+                                  </div>
+                                )}
                               </div>
                             </div>
                           ))}
