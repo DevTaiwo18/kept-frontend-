@@ -675,6 +675,12 @@ function AgentJobDetailPage() {
                     </p>
                   </div>
                   <div>
+                    <p className="text-xs text-[#707072] mb-1" style={{ fontFamily: 'Inter, sans-serif' }}>Property Address</p>
+                    <p className="text-sm text-[#101010] font-semibold" style={{ fontFamily: 'Inter, sans-serif' }}>
+                      {job.propertyAddress}
+                    </p>
+                  </div>
+                  <div>
                     <p className="text-xs text-[#707072] mb-1" style={{ fontFamily: 'Inter, sans-serif' }}>Contact Phone</p>
                     <p className="text-sm text-[#101010] font-semibold" style={{ fontFamily: 'Inter, sans-serif' }}>
                       {job.contactPhone}
