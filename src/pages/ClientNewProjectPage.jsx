@@ -12,7 +12,10 @@ function ClientNewProjectPage() {
   
   const [formData, setFormData] = useState({
     contractSignor: '',
-    propertyAddress: '',
+    street: '',
+    city: '',
+    state: '',
+    zipCode: '',
     contactPhone: '',
     contactEmail: auth?.user?.email || '',
     desiredCompletionDate: '',
@@ -62,9 +65,12 @@ function ClientNewProjectPage() {
         ? formData.contactPhone
         : `+1${formData.contactPhone.replace(/^\+1/, '')}`
 
+      // Combine address fields into single string for backend
+      const propertyAddress = `${formData.street}, ${formData.city}, ${formData.state} ${formData.zipCode}`
+
       const jobData = {
         contractSignor: formData.contractSignor,
-        propertyAddress: formData.propertyAddress,
+        propertyAddress: propertyAddress,
         contactPhone: phoneWithCountryCode,
         contactEmail: formData.contactEmail,
         desiredCompletionDate: formData.desiredCompletionDate,
@@ -168,16 +174,101 @@ function ClientNewProjectPage() {
                 <label className="block text-sm font-semibold text-[#101010] mb-2" style={{ fontFamily: 'Inter, sans-serif' }}>
                   Property Address *
                 </label>
-                <input
-                  type="text"
-                  required
-                  disabled={isLoading}
-                  value={formData.propertyAddress}
-                  onChange={(e) => setFormData({...formData, propertyAddress: e.target.value})}
-                  className="w-full px-4 py-3 border border-[#707072]/30 rounded-lg focus:outline-none focus:border-[#e6c35a] focus:ring-2 focus:ring-[#e6c35a]/20"
-                  style={{ fontFamily: 'Inter, sans-serif' }}
-                  placeholder="123 Main St, Cincinnati, OH"
-                />
+                <div className="space-y-3">
+                  <input
+                    type="text"
+                    required
+                    disabled={isLoading}
+                    value={formData.street}
+                    onChange={(e) => setFormData({...formData, street: e.target.value})}
+                    className="w-full px-4 py-3 border border-[#707072]/30 rounded-lg focus:outline-none focus:border-[#e6c35a] focus:ring-2 focus:ring-[#e6c35a]/20"
+                    style={{ fontFamily: 'Inter, sans-serif' }}
+                    placeholder="Street address (e.g., 123 Main St)"
+                  />
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    <input
+                      type="text"
+                      required
+                      disabled={isLoading}
+                      value={formData.city}
+                      onChange={(e) => setFormData({...formData, city: e.target.value})}
+                      className="w-full px-4 py-3 border border-[#707072]/30 rounded-lg focus:outline-none focus:border-[#e6c35a] focus:ring-2 focus:ring-[#e6c35a]/20"
+                      style={{ fontFamily: 'Inter, sans-serif' }}
+                      placeholder="City"
+                    />
+                    <select
+                      required
+                      disabled={isLoading}
+                      value={formData.state}
+                      onChange={(e) => setFormData({...formData, state: e.target.value})}
+                      className="w-full px-4 py-3 border border-[#707072]/30 rounded-lg focus:outline-none focus:border-[#e6c35a] focus:ring-2 focus:ring-[#e6c35a]/20 bg-white"
+                      style={{ fontFamily: 'Inter, sans-serif' }}
+                    >
+                      <option value="">State</option>
+                      <option value="AL">AL</option>
+                      <option value="AK">AK</option>
+                      <option value="AZ">AZ</option>
+                      <option value="AR">AR</option>
+                      <option value="CA">CA</option>
+                      <option value="CO">CO</option>
+                      <option value="CT">CT</option>
+                      <option value="DE">DE</option>
+                      <option value="FL">FL</option>
+                      <option value="GA">GA</option>
+                      <option value="HI">HI</option>
+                      <option value="ID">ID</option>
+                      <option value="IL">IL</option>
+                      <option value="IN">IN</option>
+                      <option value="IA">IA</option>
+                      <option value="KS">KS</option>
+                      <option value="KY">KY</option>
+                      <option value="LA">LA</option>
+                      <option value="ME">ME</option>
+                      <option value="MD">MD</option>
+                      <option value="MA">MA</option>
+                      <option value="MI">MI</option>
+                      <option value="MN">MN</option>
+                      <option value="MS">MS</option>
+                      <option value="MO">MO</option>
+                      <option value="MT">MT</option>
+                      <option value="NE">NE</option>
+                      <option value="NV">NV</option>
+                      <option value="NH">NH</option>
+                      <option value="NJ">NJ</option>
+                      <option value="NM">NM</option>
+                      <option value="NY">NY</option>
+                      <option value="NC">NC</option>
+                      <option value="ND">ND</option>
+                      <option value="OH">OH</option>
+                      <option value="OK">OK</option>
+                      <option value="OR">OR</option>
+                      <option value="PA">PA</option>
+                      <option value="RI">RI</option>
+                      <option value="SC">SC</option>
+                      <option value="SD">SD</option>
+                      <option value="TN">TN</option>
+                      <option value="TX">TX</option>
+                      <option value="UT">UT</option>
+                      <option value="VT">VT</option>
+                      <option value="VA">VA</option>
+                      <option value="WA">WA</option>
+                      <option value="WV">WV</option>
+                      <option value="WI">WI</option>
+                      <option value="WY">WY</option>
+                      <option value="DC">DC</option>
+                    </select>
+                    <input
+                      type="text"
+                      required
+                      disabled={isLoading}
+                      value={formData.zipCode}
+                      onChange={(e) => setFormData({...formData, zipCode: e.target.value})}
+                      className="w-full px-4 py-3 border border-[#707072]/30 rounded-lg focus:outline-none focus:border-[#e6c35a] focus:ring-2 focus:ring-[#e6c35a]/20"
+                      style={{ fontFamily: 'Inter, sans-serif' }}
+                      placeholder="Zip code"
+                    />
+                  </div>
+                </div>
               </div>
 
               <div className="grid sm:grid-cols-2 gap-4">
