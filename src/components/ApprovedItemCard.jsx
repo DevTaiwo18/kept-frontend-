@@ -155,7 +155,7 @@ function ApprovedItemCard({ approvedItem, item, job, onMarkAsSold }) {
       {showEstateSaleControls && (
         <div className="border-t-2 border-gray-100 pt-4">
           <h5 className="text-sm font-bold text-[#101010] mb-3" style={{ fontFamily: 'Inter, sans-serif' }}>
-            🏠 Estate Sale Controls
+            🏠 Estate Transition Controls
           </h5>
           
           {error && (

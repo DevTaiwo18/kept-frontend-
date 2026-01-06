@@ -6,12 +6,12 @@ function FAQPage() {
 
   const faqs = [
     {
-      question: 'What is an Estate Sale?',
-      answer: 'An estate sale is a sale or auction to dispose of a substantial portion of the materials owned by a person.'
+      question: 'What is an Estate Transition?',
+      answer: 'An estate transition is a sale or auction to dispose of a substantial portion of the materials owned by a person.'
     },
     {
       question: "Aren't Estate Transitions for the wealthy?",
-      answer: 'An estate sale is for anyone in transition who wants to get the best financial value from the things they no longer want to keep.'
+      answer: 'An estate transition is for anyone in transition who wants to get the best financial value from the things they no longer want to keep.'
     },
     {
       question: 'How does the process work?',
@@ -34,7 +34,7 @@ function FAQPage() {
       answer: 'Kept House performs extensive research to obtain fair market value on all items up for sale. Items that can be sold include, but are not limited to: art, antiques, collectibles, furniture, jewelry, home décor, and general household goods.\n\nIf needed, we consult with specialists to ensure accuracy for significant items. We sell anything in the home that is legal to sell.'
     },
     {
-      question: 'How long does it take to set up an estate sale?',
+      question: 'How long does it take to set up an estate transition?',
       answer: 'For effective advertising and setup, we prefer a four-week lead time. The actual setup can last up to 4 days, depending on the size of the home.'
     },
     {
@@ -46,7 +46,7 @@ function FAQPage() {
       answer: 'Estate transitions are open to the public. We limit the number of people inside the house to what our staff can manage.'
     },
     {
-      question: 'What fees and/or costs are involved with having an estate sale?',
+      question: 'What fees and/or costs are involved with having an estate transition?',
       answer: 'There is a $1,000 deposit required to receive any of our sale or auction services. We ask clients to refer to our pricing page for details and examples.'
     },
     {
@@ -62,7 +62,7 @@ function FAQPage() {
       answer: 'We do not recommend client attendance. Estate transitions can be very emotional, and seeing buyers go through family items can be unsettling. Buyers feel more comfortable negotiating when clients are not on-site.\n\nKept House can provide daily sale reports by email if desired. We handle the process so you can relax.'
     },
     {
-      question: 'How and when will I receive the profits from the estate sale?',
+      question: 'How and when will I receive the profits from the estate transition?',
       answer: 'After the sale, we provide a synopsis of the sale and a check for the proceeds (minus commission and any requested services). This is provided as a comprehensive package within 14 days after the sale concludes.'
     },
     {
@@ -97,7 +97,7 @@ function FAQPage() {
             className="text-lg text-[#707072] max-w-xl mx-auto"
             style={{ fontFamily: 'Inter, sans-serif' }}
           >
-            Everything you need to know about our estate sale services. Can't find what you're looking for? Contact us directly.
+            Everything you need to know about our estate transition services. Can't find what you're looking for? Contact us directly.
           </p>
         </div>
       </section>

@@ -157,7 +157,7 @@ function ClientProjectDetailPage() {
     { key: 'walkthrough', label: 'Walkthrough' },
     { key: 'staging', label: 'Staging/Prep' },
     { key: 'online_sale', label: 'Online Sale' },
-    { key: 'estate_sale', label: 'Estate Sale' },
+    { key: 'estate_sale', label: 'Estate Transition' },
     { key: 'donations', label: 'Donations' },
     { key: 'hauling', label: 'Hauling' },
     { key: 'payout_processing', label: 'Payout' },

@@ -136,7 +136,7 @@ function ClientNewProjectPage() {
             Start New Project
           </h1>
           <p className="text-[#707072]" style={{ fontFamily: 'Inter, sans-serif' }}>
-            Fill out the details below to begin your estate sale journey
+            Fill out the details below to begin your estate transition journey
           </p>
         </div>
 
