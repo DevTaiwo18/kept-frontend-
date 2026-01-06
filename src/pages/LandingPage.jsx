@@ -73,7 +73,7 @@ function LandingPage() {
                 className="text-3xl sm:text-4xl lg:text-5xl text-white mb-6 leading-tight"
                 style={{ fontFamily: 'Playfair Display, serif' }}
               >
-                The <span className="font-bold">thoughtful</span> estate sales company.
+                The <span className="font-bold">thoughtful</span> estate transitions company.
               </h2>
 
               <div className="flex flex-col sm:flex-row gap-4 mt-8">
@@ -100,7 +100,7 @@ function LandingPage() {
             <div className="text-center lg:text-right mt-8 lg:mt-0">
               <img
                 src="/kept-house-logo-white.png"
-                alt="Kept House Estate Sales"
+                alt="Kept House Estate Transitions"
                 className="w-32 lg:w-48 mx-auto lg:ml-auto lg:mr-0 mb-6 lg:mb-8"
                 onError={(e) => { e.target.style.display = 'none' }}
               />
@@ -127,7 +127,7 @@ function LandingPage() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
             {[
               { number: '50+', label: 'Families Helped' },
-              { number: '$100K+', label: 'In Estate Sales' },
+              { number: '$100K+', label: 'In Estate Transitions' },
               { number: '500+', label: 'Items Sold' },
               { number: '5 Star', label: 'Google Reviews' }
             ].map((stat, i) => (
@@ -485,7 +485,7 @@ function LandingPage() {
               className="text-lg text-[#707072] max-w-2xl mx-auto"
               style={{ fontFamily: 'Inter, sans-serif' }}
             >
-              Browse highlights from our past estate sales
+              Browse highlights from our past estate transitions
             </p>
           </div>
 
@@ -737,7 +737,7 @@ function LandingPage() {
             className="text-lg text-[#707072] mb-10 max-w-2xl mx-auto"
             style={{ fontFamily: 'Inter, sans-serif' }}
           >
-            Join hundreds of families who have trusted Kept House with their estate sales. Start your free consultation today.
+            Join hundreds of families who have trusted Kept House with their estate transitions. Start your free consultation today.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link

@@ -110,9 +110,9 @@ function PricingPage() {
           <div className="space-y-6">
             {[
               {
-                title: 'Whole Home Auctions & Estate Sales',
+                title: 'Whole Home Auctions & Estate Transitions',
                 price: 'Starting at $500',
-                desc: 'Includes: inventory, marketing, in-person and/or online auctions and estate sales................... PLUS 50/50 SALE SPLIT'
+                desc: 'Includes: inventory, marketing, in-person and/or online auctions and estate transitions................... PLUS 50/50 SALE SPLIT'
               },
               {
                 title: 'Home Clear-out Management',

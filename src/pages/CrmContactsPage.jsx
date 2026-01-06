@@ -66,9 +66,9 @@ The Kept House Team`
     name: 'Vendors / Sellers',
     icon: '🏠',
     subject: 'Partner with Kept House for Your Estate Sale',
-    message: `Thank you for your interest in Kept House Estate Sales!
+    message: `Thank you for your interest in Kept House Estate Transitions!
 
-We specialize in professionally managed estate sales that maximize value for our clients. Here's what sets us apart:
+We specialize in professionally managed estate transitions that maximize value for our clients. Here's what sets us apart:
 
 ✓ Full-service estate liquidation
 ✓ Professional pricing and staging
@@ -94,7 +94,7 @@ The Kept House Team`
 We truly appreciate your support and wanted to reach out with some exciting updates:
 
 🎉 What's New:
-• New estate sales added weekly
+• New estate transitions added weekly
 • Exclusive early access for loyal customers
 • Special member-only discounts
 
@@ -112,8 +112,8 @@ The Kept House Team`
   everyone: {
     name: 'Everyone',
     icon: '📧',
-    subject: 'News from Kept House Estate Sales',
-    message: `Greetings from Kept House Estate Sales!
+    subject: 'News from Kept House Estate Transitions',
+    message: `Greetings from Kept House Estate Transitions!
 
 We wanted to share some exciting news with you:
 

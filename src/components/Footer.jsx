@@ -11,14 +11,14 @@ function Footer() {
           <div className="text-center mb-6">
             <img
               src={logo}
-              alt="Kept House Estate Sales"
+              alt="Kept House Estate Transitions"
               className="h-14 w-auto mx-auto mb-2"
             />
             <p
               className="text-xs text-[#e6c35a] italic"
               style={{ fontFamily: 'Playfair Display, serif' }}
             >
-              The Thoughtful Estate Sales Company
+              The Thoughtful Estate Transitions Company
             </p>
           </div>
 
@@ -75,14 +75,14 @@ function Footer() {
           <div className="text-center sm:text-left">
             <img
               src={logo}
-              alt="Kept House Estate Sales"
+              alt="Kept House Estate Transitions"
               className="h-16 lg:h-20 w-auto mb-3 mx-auto sm:mx-0"
             />
             <p
               className="text-sm text-[#e6c35a] italic"
               style={{ fontFamily: 'Playfair Display, serif' }}
             >
-              The Thoughtful Estate Sales Company
+              The Thoughtful Estate Transitions Company
             </p>
           </div>
 
@@ -150,10 +150,10 @@ function Footer() {
         {/* Copyright */}
         <div className="border-t border-[#707072]/30 mt-6 sm:mt-10 pt-4 sm:pt-6 text-center">
           <p className="text-xs sm:text-sm text-[#707072]" style={{ fontFamily: 'Inter, sans-serif' }}>
-            © 2025 Kept House Estate Sales. All rights reserved.
+            © 2025 Kept House Estate Transitions. All rights reserved.
           </p>
           <p className="text-xs text-[#707072] mt-1 sm:mt-2" style={{ fontFamily: 'Inter, sans-serif' }}>
-            Compassionate estate sales for families in transition.
+            Compassionate estate transitions for families in transition.
           </p>
         </div>
       </div>

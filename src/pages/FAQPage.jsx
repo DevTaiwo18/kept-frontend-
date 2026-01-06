@@ -10,7 +10,7 @@ function FAQPage() {
       answer: 'An estate sale is a sale or auction to dispose of a substantial portion of the materials owned by a person.'
     },
     {
-      question: "Aren't Estate Sales for the wealthy?",
+      question: "Aren't Estate Transitions for the wealthy?",
       answer: 'An estate sale is for anyone in transition who wants to get the best financial value from the things they no longer want to keep.'
     },
     {
@@ -43,7 +43,7 @@ function FAQPage() {
     },
     {
       question: 'How many buyers will be in the house at once?',
-      answer: 'Estate sales are open to the public. We limit the number of people inside the house to what our staff can manage.'
+      answer: 'Estate transitions are open to the public. We limit the number of people inside the house to what our staff can manage.'
     },
     {
       question: 'What fees and/or costs are involved with having an estate sale?',
@@ -59,7 +59,7 @@ function FAQPage() {
     },
     {
       question: 'Can clients attend the sale?',
-      answer: 'We do not recommend client attendance. Estate sales can be very emotional, and seeing buyers go through family items can be unsettling. Buyers feel more comfortable negotiating when clients are not on-site.\n\nKept House can provide daily sale reports by email if desired. We handle the process so you can relax.'
+      answer: 'We do not recommend client attendance. Estate transitions can be very emotional, and seeing buyers go through family items can be unsettling. Buyers feel more comfortable negotiating when clients are not on-site.\n\nKept House can provide daily sale reports by email if desired. We handle the process so you can relax.'
     },
     {
       question: 'How and when will I receive the profits from the estate sale?',
@@ -67,7 +67,7 @@ function FAQPage() {
     },
     {
       question: 'What is your refund, return, and cancellation policy?',
-      answer: 'Returns and Refunds: Due to the unique, often one-of-a-kind nature of estate items, all sales are final. Buyers should review item descriptions, photographs, and any available condition reports. If an item is significantly not as described, buyers may contact Kept House within 48 hours of receipt. We will review claims individually and may offer a refund, store credit, or replacement at our discretion.\n\nCancellations: Because estate sales are fast-paced, we cannot accommodate cancellations once a bid or purchase has been placed.\n\nLost in Transit: If an item cannot be delivered or is lost in transit, Kept House will work to resolve the issue and may offer a refund, store credit, or replacement depending on circumstances.'
+      answer: 'Returns and Refunds: Due to the unique, often one-of-a-kind nature of estate items, all sales are final. Buyers should review item descriptions, photographs, and any available condition reports. If an item is significantly not as described, buyers may contact Kept House within 48 hours of receipt. We will review claims individually and may offer a refund, store credit, or replacement at our discretion.\n\nCancellations: Because estate transitions are fast-paced, we cannot accommodate cancellations once a bid or purchase has been placed.\n\nLost in Transit: If an item cannot be delivered or is lost in transit, Kept House will work to resolve the issue and may offer a refund, store credit, or replacement depending on circumstances.'
     }
   ]
 
