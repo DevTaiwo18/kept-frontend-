@@ -388,7 +388,7 @@ function MarketplaceItemDetailPage() {
               </button>
               
               <p className="text-center text-xs text-[#707072]" style={{ fontFamily: 'Inter, sans-serif' }}>
-                Questions? Contact us at support@kepthouse.com
+                Questions? Contact us at admin@keptestate.com
               </p>
             </div>
           </div>
