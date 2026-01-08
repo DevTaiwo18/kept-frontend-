@@ -126,7 +126,7 @@ function SaleTimeframesSection({ job, onUpdate, isInFinalStage }) {
 
           <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
             <h4 className="text-sm font-bold text-purple-900 mb-2" style={{ fontFamily: 'Inter, sans-serif' }}>
-              🏠 Estate Transition Event
+              🏠 Estate Sale Event
             </h4>
             <div className="space-y-2 text-sm">
               <div>
@@ -186,7 +186,7 @@ function SaleTimeframesSection({ job, onUpdate, isInFinalStage }) {
 
           <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
             <h4 className="text-sm font-bold text-purple-900 mb-3" style={{ fontFamily: 'Inter, sans-serif' }}>
-              🏠 Estate Transition Event
+              🏠 Estate Sale Event
             </h4>
             <div className="space-y-3">
               <div>

@@ -35,10 +35,10 @@ function EmailTemplatesPage() {
       name: 'Welcome Email',
       icon: '👋',
       description: 'Send a warm welcome with contract attached',
-      defaultSubject: 'Welcome to Kept House Estate Transitions!',
+      defaultSubject: 'Welcome to Kept House Estate Sales!',
       defaultMessage: `Hello [Client Name],
 
-Thank you for choosing Kept House Estate Transitions! We're excited to help you with your estate transition at [Property Address].
+Thank you for choosing Kept House Estate Sales! We're excited to help you with your estate sale at [Property Address].
 
 IMPORTANT - Your Contract Agreement
 
@@ -63,17 +63,17 @@ If you have any questions or need help signing, feel free to reach out at any ti
 
 Best regards,
 [Your Name]
-Kept House Estate Transitions`
+Kept House Estate Sales`
     },
     {
       key: 'progress_report',
       name: 'Progress Update',
       icon: '📊',
       description: 'Share project progress with clients',
-      defaultSubject: 'Update on Your Estate Transition Progress',
+      defaultSubject: 'Update on Your Estate Sale Progress',
       defaultMessage: `Hello [Client Name],
 
-I wanted to give you a quick update on your estate transition at [Property Address].
+I wanted to give you a quick update on your estate sale at [Property Address].
 
 Current Status: [Current Stage]
 
@@ -85,27 +85,27 @@ Please don't hesitate to reach out if you have any questions.
 
 Best regards,
 [Your Name]
-Kept House Estate Transitions`
+Kept House Estate Sales`
     },
     {
       key: 'closeout',
       name: 'Final Summary',
       icon: '✅',
       description: 'Send completion summary and final details',
-      defaultSubject: 'Your Estate Transition - Final Summary',
+      defaultSubject: 'Your Estate Sale - Final Summary',
       defaultMessage: `Hello [Client Name],
 
-Your estate transition at [Property Address] has been completed successfully!
+Your estate sale at [Property Address] has been completed successfully!
 
 [Add your final summary details here]
 
 It has been a pleasure working with you. If you need anything else or have questions about your final statement, please let us know.
 
-Thank you for trusting Kept House Estate Transitions!
+Thank you for trusting Kept House Estate Sales!
 
 Best regards,
 [Your Name]
-Kept House Estate Transitions`
+Kept House Estate Sales`
     }
   ]
 

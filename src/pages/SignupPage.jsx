@@ -39,7 +39,7 @@ function SignupPage() {
       value: 'buyer',
       label: 'Buyer',
       icon: '🛍️',
-      description: 'I want to shop estate transitions',
+      description: 'I want to shop estate sales',
       route: '/browse'
     },
     {
@@ -145,7 +145,7 @@ function SignupPage() {
             className="text-sm text-[#707072]" 
             style={{ fontFamily: 'Inter, sans-serif' }}
           >
-            Start your estate transitions journey with Kept House
+            Start your estate sales journey with Kept House
           </p>
         </div>
 

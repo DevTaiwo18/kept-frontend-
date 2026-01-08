@@ -39,8 +39,8 @@ const EMAIL_TEMPLATES = {
   buyer: {
     name: 'Buyers / Shoppers',
     icon: '🛍️',
-    subject: 'Upcoming Estate Transition - Don\'t Miss Out!',
-    message: `We wanted to reach out and let you know about an exciting upcoming estate transition!
+    subject: 'Upcoming Estate Sale - Don\'t Miss Out!',
+    message: `We wanted to reach out and let you know about an exciting upcoming estate sale!
 
 📅 Date: [DATE]
 🕐 Time: 9:00 AM - 4:00 PM
@@ -65,10 +65,10 @@ The Kept House Team`
   vendor: {
     name: 'Vendors / Sellers',
     icon: '🏠',
-    subject: 'Partner with Kept House for Your Estate Transition',
-    message: `Thank you for your interest in Kept House Estate Transitions!
+    subject: 'Partner with Kept House for Your Estate Sale',
+    message: `Thank you for your interest in Kept House Estate Sales!
 
-We specialize in professionally managed estate transitions that maximize value for our clients. Here's what sets us apart:
+We specialize in professionally managed estate sales that maximize value for our clients. Here's what sets us apart:
 
 ✓ Full-service estate liquidation
 ✓ Professional pricing and staging
@@ -76,7 +76,7 @@ We specialize in professionally managed estate transitions that maximize value f
 ✓ Transparent reporting
 ✓ Compassionate service during difficult transitions
 
-We'd love to discuss how we can help you with your upcoming estate transition.
+We'd love to discuss how we can help you with your upcoming estate sale.
 
 Would you be available for a free consultation this week? Simply reply to this email or call us at (513) 555-1234 to schedule.
 
@@ -94,7 +94,7 @@ The Kept House Team`
 We truly appreciate your support and wanted to reach out with some exciting updates:
 
 🎉 What's New:
-• New estate transitions added weekly
+• New estate sales added weekly
 • Exclusive early access for loyal customers
 • Special member-only discounts
 
@@ -112,8 +112,8 @@ The Kept House Team`
   everyone: {
     name: 'Everyone',
     icon: '📧',
-    subject: 'News from Kept House Estate Transitions',
-    message: `Greetings from Kept House Estate Transitions!
+    subject: 'News from Kept House Estate Sales',
+    message: `Greetings from Kept House Estate Sales!
 
 We wanted to share some exciting news with you:
 
@@ -124,7 +124,7 @@ We wanted to share some exciting news with you:
 • [SALE 1 - DATE & LOCATION]
 • [SALE 2 - DATE & LOCATION]
 
-Whether you're looking to buy unique treasures or need help with an estate transition, we're here for you!
+Whether you're looking to buy unique treasures or need help with an estate sale, we're here for you!
 
 Visit our website at keptestate.com to see our latest listings.
 

@@ -36,7 +36,7 @@ function ClientOnboardingPage() {
     { key: 'walkthrough', label: 'Walkthrough' },
     { key: 'staging', label: 'Staging/Prep' },
     { key: 'online_sale', label: 'Online Sale' },
-    { key: 'estate_sale', label: 'Estate Transition' },
+    { key: 'estate_sale', label: 'Estate Sale' },
     { key: 'donations', label: 'Donations' },
     { key: 'hauling', label: 'Hauling' },
     { key: 'payout_processing', label: 'Payout' },
@@ -180,7 +180,7 @@ function ClientOnboardingPage() {
             Welcome, {auth?.user?.name}
           </h1>
           <p className="text-sm sm:text-base text-[#707072]" style={{ fontFamily: 'Inter, sans-serif' }}>
-            Track your estate transition progress and financials
+            Track your estate sale progress and financials
           </p>
         </div>
 
@@ -194,7 +194,7 @@ function ClientOnboardingPage() {
               No Projects Yet
             </h3>
             <p className="text-sm sm:text-base text-[#707072] mb-6" style={{ fontFamily: 'Inter, sans-serif' }}>
-              Get started by creating your first estate transition project.
+              Get started by creating your first estate sale project.
             </p>
             <button
               onClick={() => navigate('/client/new-project')}

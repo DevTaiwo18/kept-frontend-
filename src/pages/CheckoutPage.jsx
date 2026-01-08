@@ -236,7 +236,7 @@ function CheckoutPage() {
               <div className="text-4xl">📍</div>
               <div className="flex-1">
                 <h3 className="text-xl font-bold text-[#101010] mb-2" style={{ fontFamily: 'Playfair Display, serif' }}>
-                  Estate Transition Location
+                  Estate Sale Location
                 </h3>
                 <p className="text-[#707072] mb-2" style={{ fontFamily: 'Inter, sans-serif' }}>
                   All items are located at:
@@ -281,7 +281,7 @@ function CheckoutPage() {
                     Pickup
                   </h3>
                   <p className="text-sm text-[#707072]" style={{ fontFamily: 'Inter, sans-serif' }}>
-                    Pick up from estate transition location
+                    Pick up from estate sale location
                   </p>
                   <p className="text-sm font-semibold text-[#e6c35a] mt-2" style={{ fontFamily: 'Inter, sans-serif' }}>
                     FREE

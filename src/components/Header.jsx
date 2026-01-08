@@ -83,7 +83,7 @@ function Header() {
           <Link to="/" className="hover:opacity-90 transition-opacity flex-shrink-0">
             <img
               src={logo}
-              alt="Kept House Estate Transitions"
+              alt="Kept House Estate Sales"
               className="h-10 sm:h-12 w-auto"
             />
           </Link>

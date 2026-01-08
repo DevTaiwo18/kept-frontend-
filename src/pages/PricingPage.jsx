@@ -23,7 +23,7 @@ function PricingPage() {
             className="text-xl text-gray-300"
             style={{ fontFamily: 'Inter, sans-serif' }}
           >
-            Transparent pricing for every stage of your estate transition
+            Transparent pricing for every stage of your estate sale
           </p>
         </div>
       </section>
@@ -45,13 +45,13 @@ function PricingPage() {
                 className="text-2xl sm:text-3xl font-bold mb-2"
                 style={{ fontFamily: 'Playfair Display, serif' }}
               >
-                WHOLE ESTATE TRANSITION PACKAGES
+                WHOLE ESTATE SALE PACKAGES
               </h2>
               <p
                 className="text-gray-300 mb-2"
                 style={{ fontFamily: 'Inter, sans-serif' }}
               >
-                Includes Estate Transition + Home Clear-out Management
+                Includes Estate Sale + Home Clear-out Management
               </p>
               <p
                 className="text-gray-400 text-sm"
@@ -70,7 +70,7 @@ function PricingPage() {
               </p>
 
               <div className="space-y-4 max-w-md mx-auto text-left">
-                {['Consultation', 'Inventory', 'Campaign', 'Auction', 'Estate Transition', 'Donation', 'Home Clear-out Management'].map((item, i) => (
+                {['Consultation', 'Inventory', 'Campaign', 'Auction', 'Estate Sale', 'Donation', 'Home Clear-out Management'].map((item, i) => (
                   <div key={i} className="flex items-center gap-3 py-3 border-b border-gray-200">
                     <svg className="w-5 h-5 text-[#e6c35a] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -110,9 +110,9 @@ function PricingPage() {
           <div className="space-y-6">
             {[
               {
-                title: 'Whole Home Auctions & Estate Transitions',
+                title: 'Whole Home Auctions & Estate Sales',
                 price: 'Starting at $500',
-                desc: 'Includes: inventory, marketing, in-person and/or online auctions and estate transitions................... PLUS 50/50 SALE SPLIT'
+                desc: 'Includes: inventory, marketing, in-person and/or online auctions and estate sales................... PLUS 50/50 SALE SPLIT'
               },
               {
                 title: 'Home Clear-out Management',
@@ -132,7 +132,7 @@ function PricingPage() {
               {
                 title: 'Staging',
                 price: 'Starting at $250',
-                desc: 'Kept House prepares your home for its estate transition OR real estate sale.'
+                desc: 'Kept House prepares your home for its estate sale OR real estate sale.'
               }
             ].map((service, i) => (
               <div key={i} className="flex flex-col sm:flex-row sm:items-start sm:justify-between py-6 border-b border-gray-200">
@@ -172,7 +172,7 @@ function PricingPage() {
             className="text-lg text-[#707072] text-center mb-12 max-w-2xl mx-auto"
             style={{ fontFamily: 'Inter, sans-serif' }}
           >
-            Auction & Estate Transition proceed splits are based on how much the sale makes. The more your event sells, the higher percentage you make.
+            Auction & Estate Sale proceed splits are based on how much the sale makes. The more your event sells, the higher percentage you make.
           </p>
 
           <div className="bg-white rounded-xl shadow-lg overflow-hidden">
@@ -224,10 +224,10 @@ function PricingPage() {
                 Scenario 1
               </h3>
               <p className="text-gray-300 mb-4" style={{ fontFamily: 'Inter, sans-serif' }}>
-                The Jones Family hires Kept House for our <span className="font-bold text-white">Whole Home Auction & Estate Transition</span>.
+                The Jones Family hires Kept House for our <span className="font-bold text-white">Whole Home Auction & Estate Sale</span>.
               </p>
               <p className="text-gray-300 mb-4" style={{ fontFamily: 'Inter, sans-serif' }}>
-                Kept House creates the marketing campaign, promotes and facilitates the execution of the estate transition. The Jones' and Kept House agree to a $2,500 service fee based on the scope of the work, plus a 50/50 split of the proceeds. Kept House requires a $1,000 deposit to begin services, with the remaining balance coming from sale proceeds. The sale makes $4,000.
+                Kept House creates the marketing campaign, promotes and facilitates the execution of the estate sale. The Jones' and Kept House agree to a $2,500 service fee based on the scope of the work, plus a 50/50 split of the proceeds. Kept House requires a $1,000 deposit to begin services, with the remaining balance coming from sale proceeds. The sale makes $4,000.
               </p>
               <p className="text-[#e6c35a] font-bold text-lg" style={{ fontFamily: 'Inter, sans-serif' }}>
                 Kept House delivers a check to the Jones Family within 10 days for $1,250.
@@ -243,10 +243,10 @@ function PricingPage() {
                 Scenario 2
               </h3>
               <p className="text-gray-300 mb-4" style={{ fontFamily: 'Inter, sans-serif' }}>
-                The Jones Family hires Kept House for our <span className="font-bold text-white">Whole Estate Transition Package</span>.
+                The Jones Family hires Kept House for our <span className="font-bold text-white">Whole Estate Sale Package</span>.
               </p>
               <p className="text-gray-300 mb-4" style={{ fontFamily: 'Inter, sans-serif' }}>
-                Kept House creates the marketing campaign, promotes and facilitates the execution of the estate transition. The Jones' and Kept House agree to a $2,500 service fee based on the scope of the work, plus a 50/50 split of the proceeds. Kept House requires a $1,000 deposit to begin services, with the remaining balance coming from sale proceeds. The sale makes $4,000. After the sale, Kept House manages the clear-out process and reduces clients overall cost of hauling through our donation network.
+                Kept House creates the marketing campaign, promotes and facilitates the execution of the estate sale. The Jones' and Kept House agree to a $2,500 service fee based on the scope of the work, plus a 50/50 split of the proceeds. Kept House requires a $1,000 deposit to begin services, with the remaining balance coming from sale proceeds. The sale makes $4,000. After the sale, Kept House manages the clear-out process and reduces clients overall cost of hauling through our donation network.
               </p>
               <p className="text-[#e6c35a] font-bold text-lg" style={{ fontFamily: 'Inter, sans-serif' }}>
                 After the clear-out, Kept House either sends a check to the Jones with the remainder, or a balance of what is due.

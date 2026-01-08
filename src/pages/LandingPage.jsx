@@ -100,7 +100,7 @@ function LandingPage() {
             <div className="text-center lg:text-right mt-8 lg:mt-0">
               <img
                 src="/kept-house-logo-white.png"
-                alt="Kept House Estate Transitions"
+                alt="Kept House Estate Sales"
                 className="w-32 lg:w-48 mx-auto lg:ml-auto lg:mr-0 mb-6 lg:mb-8"
                 onError={(e) => { e.target.style.display = 'none' }}
               />
@@ -108,7 +108,7 @@ function LandingPage() {
                 className="text-lg sm:text-xl lg:text-2xl text-white italic leading-relaxed mb-4"
                 style={{ fontFamily: 'Playfair Display, serif' }}
               >
-                "I recommend Kept House Estate Transition Company to anyone and everyone faced with the challenges of closing an estate!"
+                "I recommend Kept House Estate Sale Company to anyone and everyone faced with the challenges of closing an estate!"
               </p>
               <p
                 className="text-lg lg:text-xl text-white italic"
@@ -127,7 +127,7 @@ function LandingPage() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
             {[
               { number: '50+', label: 'Families Helped' },
-              { number: '$100K+', label: 'In Estate Transitions' },
+              { number: '$100K+', label: 'In Estate Sales' },
               { number: '500+', label: 'Items Sold' },
               { number: '5 Star', label: 'Google Reviews' }
             ].map((stat, i) => (
@@ -278,7 +278,7 @@ function LandingPage() {
               className="text-lg text-[#707072] max-w-2xl mx-auto"
               style={{ fontFamily: 'Inter, sans-serif' }}
             >
-              We combine compassion with technology to deliver the best estate transition experience
+              We combine compassion with technology to deliver the best estate sale experience
             </p>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-6">
@@ -326,7 +326,7 @@ function LandingPage() {
                   </svg>
                 ),
                 title: 'One Stop Shop',
-                desc: 'Get all of your estate transition services under one roof!'
+                desc: 'Get all of your estate sale services under one roof!'
               }
             ].map((benefit, i) => (
               <div key={i} className="bg-white p-6 rounded-xl shadow-md hover:shadow-xl transition-all hover:-translate-y-1 group">
@@ -479,73 +479,73 @@ function LandingPage() {
               className="text-3xl sm:text-4xl font-bold text-[#101010] mb-4"
               style={{ fontFamily: 'Playfair Display, serif' }}
             >
-              Estate Transition Gallery
+              Estate Sale Gallery
             </h2>
             <p
               className="text-lg text-[#707072] max-w-2xl mx-auto"
               style={{ fontFamily: 'Inter, sans-serif' }}
             >
-              Browse highlights from our past estate transitions
+              Browse highlights from our past estate sales
             </p>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
             {/* Row 1 */}
             <div className="overflow-hidden rounded-lg hover:shadow-lg transition-all cursor-pointer">
-              <img src="/past-sale-01.jpeg" alt="Past estate transition 1" className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
+              <img src="/past-sale-01.jpeg" alt="Past estate sale 1" className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
             </div>
             <div className="overflow-hidden rounded-lg hover:shadow-lg transition-all cursor-pointer">
-              <img src="/past-sale-02.jpeg" alt="Past estate transition 2" className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
+              <img src="/past-sale-02.jpeg" alt="Past estate sale 2" className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
             </div>
             <div className="overflow-hidden rounded-lg hover:shadow-lg transition-all cursor-pointer">
-              <img src="/past-sale-03.jpeg" alt="Past estate transition 3" className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
+              <img src="/past-sale-03.jpeg" alt="Past estate sale 3" className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
             </div>
             <div className="overflow-hidden rounded-lg hover:shadow-lg transition-all cursor-pointer">
-              <img src="/past-sale-04.jpeg" alt="Past estate transition 4" className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
+              <img src="/past-sale-04.jpeg" alt="Past estate sale 4" className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
             </div>
             <div className="overflow-hidden rounded-lg hover:shadow-lg transition-all cursor-pointer">
-              <img src="/past-sale-05.jpeg" alt="Past estate transition 5" className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
+              <img src="/past-sale-05.jpeg" alt="Past estate sale 5" className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
             </div>
             <div className="overflow-hidden rounded-lg hover:shadow-lg transition-all cursor-pointer">
-              <img src="/past-sale-06.jpeg" alt="Past estate transition 6" className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
+              <img src="/past-sale-06.jpeg" alt="Past estate sale 6" className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
             </div>
             {/* Row 2 */}
             <div className="overflow-hidden rounded-lg hover:shadow-lg transition-all cursor-pointer">
-              <img src="/past-sale-07.jpeg" alt="Past estate transition 7" className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
+              <img src="/past-sale-07.jpeg" alt="Past estate sale 7" className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
             </div>
             <div className="overflow-hidden rounded-lg hover:shadow-lg transition-all cursor-pointer">
-              <img src="/past-sale-08.jpeg" alt="Past estate transition 8" className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
+              <img src="/past-sale-08.jpeg" alt="Past estate sale 8" className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
             </div>
             <div className="overflow-hidden rounded-lg hover:shadow-lg transition-all cursor-pointer">
-              <img src="/past-sale-09.jpeg" alt="Past estate transition 9" className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
+              <img src="/past-sale-09.jpeg" alt="Past estate sale 9" className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
             </div>
             <div className="overflow-hidden rounded-lg hover:shadow-lg transition-all cursor-pointer">
-              <img src="/past-sale-10.jpeg" alt="Past estate transition 10" className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
+              <img src="/past-sale-10.jpeg" alt="Past estate sale 10" className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
             </div>
             <div className="overflow-hidden rounded-lg hover:shadow-lg transition-all cursor-pointer">
-              <img src="/past-sale-11.jpeg" alt="Past estate transition 11" className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
+              <img src="/past-sale-11.jpeg" alt="Past estate sale 11" className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
             </div>
             <div className="overflow-hidden rounded-lg hover:shadow-lg transition-all cursor-pointer">
-              <img src="/past-sale-12.jpeg" alt="Past estate transition 12" className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
+              <img src="/past-sale-12.jpeg" alt="Past estate sale 12" className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
             </div>
             {/* Row 3 */}
             <div className="overflow-hidden rounded-lg hover:shadow-lg transition-all cursor-pointer">
-              <img src="/past-sale-13.jpeg" alt="Past estate transition 13" className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
+              <img src="/past-sale-13.jpeg" alt="Past estate sale 13" className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
             </div>
             <div className="overflow-hidden rounded-lg hover:shadow-lg transition-all cursor-pointer">
-              <img src="/past-sale-14.jpeg" alt="Past estate transition 14" className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
+              <img src="/past-sale-14.jpeg" alt="Past estate sale 14" className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
             </div>
             <div className="overflow-hidden rounded-lg hover:shadow-lg transition-all cursor-pointer">
-              <img src="/past-sale-15.jpeg" alt="Past estate transition 15" className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
+              <img src="/past-sale-15.jpeg" alt="Past estate sale 15" className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
             </div>
             <div className="overflow-hidden rounded-lg hover:shadow-lg transition-all cursor-pointer">
-              <img src="/past-sale-16.jpeg" alt="Past estate transition 16" className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
+              <img src="/past-sale-16.jpeg" alt="Past estate sale 16" className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
             </div>
             <div className="overflow-hidden rounded-lg hover:shadow-lg transition-all cursor-pointer">
-              <img src="/past-sale-17.jpeg" alt="Past estate transition 17" className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
+              <img src="/past-sale-17.jpeg" alt="Past estate sale 17" className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
             </div>
             <div className="overflow-hidden rounded-lg hover:shadow-lg transition-all cursor-pointer">
-              <img src="/past-sale-01.jpeg" alt="Past estate transition 18" className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
+              <img src="/past-sale-01.jpeg" alt="Past estate sale 18" className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
             </div>
           </div>
         </div>
@@ -572,13 +572,13 @@ function LandingPage() {
                 className="text-2xl sm:text-3xl font-bold text-[#101010] mb-4 underline underline-offset-4"
                 style={{ fontFamily: 'Playfair Display, serif' }}
               >
-                ESTATE TRANSITIONS:
+                ESTATE SALES:
               </h3>
               <p
                 className="text-[#707072] mb-4"
                 style={{ fontFamily: 'Inter, sans-serif' }}
               >
-                Our ESTATE TRANSITION package leaves the home completely empty and ready for next steps (see video below).
+                Our ESTATE SALE package leaves the home completely empty and ready for next steps (see video below).
               </p>
               <p
                 className="text-[#707072] mb-8"
@@ -610,7 +610,7 @@ function LandingPage() {
         </div>
       </section>
 
-      {/* Estate Transition Comparison Chart */}
+      {/* Estate Sale Comparison Chart */}
       <section className="py-16 px-4 bg-[#F8F5F0]" id="comparison">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
@@ -624,7 +624,7 @@ function LandingPage() {
               className="text-3xl sm:text-4xl font-bold text-[#101010] mb-4"
               style={{ fontFamily: 'Playfair Display, serif' }}
             >
-              Estate Transition
+              Estate Sale
             </h2>
             <p
               className="text-lg text-[#707072] max-w-2xl mx-auto"
@@ -674,7 +674,7 @@ function LandingPage() {
               <tbody>
                 {[
                   { feature: 'Auction', online: true, franchise: false, auction: true, kept: true },
-                  { feature: 'Estate Transition', online: false, franchise: true, auction: false, kept: true },
+                  { feature: 'Estate Sale', online: false, franchise: true, auction: false, kept: true },
                   { feature: 'Online Sales', online: true, franchise: true, auction: true, kept: true },
                   { feature: 'Donation', online: false, franchise: true, auction: false, kept: true },
                   { feature: 'Home Clearout', online: false, franchise: false, auction: false, kept: true },
@@ -737,7 +737,7 @@ function LandingPage() {
             className="text-lg text-[#707072] mb-10 max-w-2xl mx-auto"
             style={{ fontFamily: 'Inter, sans-serif' }}
           >
-            Join hundreds of families who have trusted Kept House with their estate transitions. Start your free consultation today.
+            Join hundreds of families who have trusted Kept House with their estate sales. Start your free consultation today.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link

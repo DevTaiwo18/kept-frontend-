@@ -304,7 +304,7 @@ function ClientItemGalleryPage() {
                 <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
                   <h4 className="text-sm font-bold text-purple-900 mb-2 flex items-center gap-2" style={{ fontFamily: 'Inter, sans-serif' }}>
                     <span className="text-lg">🏠</span>
-                    In-Person Estate Transition
+                    In-Person Estate Sale
                   </h4>
                   <div className="space-y-1 text-sm text-purple-800" style={{ fontFamily: 'Inter, sans-serif' }}>
                     <p>

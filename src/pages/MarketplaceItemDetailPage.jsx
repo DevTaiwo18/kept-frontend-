@@ -369,7 +369,7 @@ function MarketplaceItemDetailPage() {
 
             <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
               <p className="text-sm text-blue-800" style={{ fontFamily: 'Inter, sans-serif' }}>
-                <strong>💡 Estate Transition Item:</strong> This is a unique piece from a curated estate collection. Once sold, it's gone forever.
+                <strong>💡 Estate Sale Item:</strong> This is a unique piece from a curated estate collection. Once sold, it's gone forever.
               </p>
             </div>
 
