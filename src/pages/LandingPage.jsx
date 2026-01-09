@@ -572,7 +572,7 @@ function LandingPage() {
                 className="text-2xl sm:text-3xl font-bold text-[#101010] mb-4 underline underline-offset-4"
                 style={{ fontFamily: 'Playfair Display, serif' }}
               >
-                ESTATE SALES:
+                ESTATE TRANSITIONS:
               </h3>
               <p
                 className="text-[#707072] mb-4"
@@ -624,7 +624,7 @@ function LandingPage() {
               className="text-3xl sm:text-4xl font-bold text-[#101010] mb-4"
               style={{ fontFamily: 'Playfair Display, serif' }}
             >
-              Estate Sale
+              Estate Transition
             </h2>
             <p
               className="text-lg text-[#707072] max-w-2xl mx-auto"
