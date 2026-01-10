@@ -737,7 +737,7 @@ function LandingPage() {
             className="text-lg text-[#707072] mb-10 max-w-2xl mx-auto"
             style={{ fontFamily: 'Inter, sans-serif' }}
           >
-            Join hundreds of families who have trusted Kept House with their estate sales. Start your free consultation today.
+            Join hundreds of families who have trusted Kept House with their estate transitions. Start your free consultation today.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
