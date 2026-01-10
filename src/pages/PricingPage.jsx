@@ -224,7 +224,7 @@ function PricingPage() {
                 Scenario 1
               </h3>
               <p className="text-gray-300 mb-4" style={{ fontFamily: 'Inter, sans-serif' }}>
-                The Jones Family hires Kept House for our <span className="font-bold text-white">Whole Home Auction & Estate Sale</span>.
+                The Jones Family hires Kept House for our <span className="font-bold text-white">Liquidation Package</span>.
               </p>
               <p className="text-gray-300 mb-4" style={{ fontFamily: 'Inter, sans-serif' }}>
                 Kept House creates the marketing campaign, promotes and facilitates the execution of the estate sale. The Jones' and Kept House agree to a $2,500 service fee based on the scope of the work, plus a 50/50 split of the proceeds. Kept House requires a $1,000 deposit to begin services, with the remaining balance coming from sale proceeds. The sale makes $4,000.
